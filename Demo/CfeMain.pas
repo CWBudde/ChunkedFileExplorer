@@ -79,6 +79,27 @@ type
     FBaseChunk: TChunkedFile;
     FDisplayProcs: TDictionary<TDefinedChunkClass, TDisplayChunk>;
     procedure InitializeDefaultListView;
+    procedure DisplayAFspChunk(Chunk: TDefinedChunk);
+    procedure DisplayBextChunk(Chunk: TDefinedChunk);
+    procedure DisplayBwfAXMLChunk(Chunk: TDefinedChunk);
+    procedure DisplayBWFLinkChunk(Chunk: TDefinedChunk);
+    procedure DisplayCartChunk(Chunk: TDefinedChunk);
+    procedure DisplayFactChunk(Chunk: TDefinedChunk);
+    procedure DisplayInfoArtist(Chunk: TDefinedChunk);
+    procedure DisplayInfoComment(Chunk: TDefinedChunk);
+    procedure DisplayInfoCopyright(Chunk: TDefinedChunk);
+    procedure DisplayInfoCreationDate(Chunk: TDefinedChunk);
+    procedure DisplayInfoSoftwareName(Chunk: TDefinedChunk);
+    procedure DisplayInfoSubject(Chunk: TDefinedChunk);
+    procedure DisplayInfoTitle(Chunk: TDefinedChunk);
+    procedure DisplayInstrumentChunk(Chunk: TDefinedChunk);
+    procedure DisplayJunkChunk(Chunk: TDefinedChunk);
+    procedure DisplayLabelChunk(Chunk: TDefinedChunk);
+    procedure DisplayLabeledTextChunk(Chunk: TDefinedChunk);
+    procedure DisplayNoteChunk(Chunk: TDefinedChunk);
+    procedure DisplayPadChunk(Chunk: TDefinedChunk);
+    procedure DisplaySamplerChunk(Chunk: TDefinedChunk);
+    procedure DisplaySilentChunk(Chunk: TDefinedChunk);
   protected
     procedure BaseChunkChanged;
 
@@ -141,6 +162,22 @@ begin
   FDisplayProcs.Add(TChunkPngSignificantBits, DisplaySignificantBitsChunk);
   FDisplayProcs.Add(TChunkPngTransparency, DisplayTransparencyChunk);
   FDisplayProcs.Add(TFormatChunk, DisplayFormatChunk);
+  FDisplayProcs.Add(TFactChunk, DisplayFactChunk);
+  FDisplayProcs.Add(TInfoArtistChunk, DisplayInfoArtist);
+  FDisplayProcs.Add(TInfoCommentChunk, DisplayInfoComment);
+  FDisplayProcs.Add(TInfoCopyrightChunk, DisplayInfoCopyright);
+  FDisplayProcs.Add(TInfoCreationDateChunk, DisplayInfoCreationDate);
+  FDisplayProcs.Add(TInfoSoftwareNameChunk, DisplayInfoSoftwareName);
+  FDisplayProcs.Add(TInfoSubjectChunk, DisplayInfoSubject);
+  FDisplayProcs.Add(TInfoTitleChunk, DisplayInfoTitle);
+  FDisplayProcs.Add(TInstrumentChunk, DisplayInstrumentChunk);
+  FDisplayProcs.Add(TJunkChunk, DisplayJunkChunk);
+  FDisplayProcs.Add(TLabelChunk, DisplayLabelChunk);
+  FDisplayProcs.Add(TLabeledTextChunk, DisplayLabeledTextChunk);
+  FDisplayProcs.Add(TNoteChunk, DisplayNoteChunk);
+  FDisplayProcs.Add(TPadChunk, DisplayPadChunk);
+  FDisplayProcs.Add(TSamplerChunk, DisplaySamplerChunk);
+  FDisplayProcs.Add(TSilentChunk, DisplaySilentChunk);
 end;
 
 procedure TFormChunkedFileExplorer.FormDestroy(Sender: TObject);
@@ -449,6 +486,310 @@ begin
     ListViewData(['BlockAlign', IntToStr(BlockAlign)]);
     ListViewData(['BitsPerSample', IntToStr(BitsPerSample)]);
     ListViewData(['ValidBitsPerSample', IntToStr(ValidBitsPerSample)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayFactChunk(Chunk: TDefinedChunk);
+begin
+  with TFactChunk(Chunk) do
+  begin
+    ListViewData(['SampleCount', IntToStr(SampleCount)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoSoftwareName(Chunk: TDefinedChunk);
+begin
+  with TInfoSoftwareNameChunk(Chunk) do
+  begin
+    ListViewData(['SoftwareName', SoftwareName]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoComment(Chunk: TDefinedChunk);
+begin
+  with TInfoCommentChunk(Chunk) do
+  begin
+    ListViewData(['Comment', Comment]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoCreationDate(Chunk: TDefinedChunk);
+begin
+  with TInfoCreationDateChunk(Chunk) do
+  begin
+    ListViewData(['CreationDate', CreationDate]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoCopyright(Chunk: TDefinedChunk);
+begin
+  with TInfoCopyrightChunk(Chunk) do
+  begin
+    ListViewData(['Copyright', Copyright]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoSubject(Chunk: TDefinedChunk);
+begin
+  with TInfoSubjectChunk(Chunk) do
+  begin
+    ListViewData(['Subject', Subject]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoArtist(Chunk: TDefinedChunk);
+begin
+  with TInfoArtistChunk(Chunk) do
+  begin
+    ListViewData(['Artist', Artist]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInfoTitle(Chunk: TDefinedChunk);
+begin
+  with TInfoTitleChunk(Chunk) do
+  begin
+    ListViewData(['Title', Title]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayLabelChunk(Chunk: TDefinedChunk);
+begin
+  with TLabelChunk(Chunk) do
+  begin
+    ListViewData(['Label', Text]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayNoteChunk(Chunk: TDefinedChunk);
+begin
+  with TNoteChunk(Chunk) do
+  begin
+    ListViewData(['Note', Note]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayLabeledTextChunk(Chunk: TDefinedChunk);
+begin
+  with TLabeledTextChunk(Chunk) do
+  begin
+    ListViewData(['Text', Text]);
+    ListViewData(['CuePointID', IntToStr(CuePointID)]);
+    ListViewData(['SampleLength', IntToStr(SampleLength)]);
+    ListViewData(['PurposeID', IntToStr(PurposeID)]);
+    ListViewData(['Country', IntToStr(Country)]);
+    ListViewData(['Language', IntToStr(Language)]);
+    ListViewData(['Dialect', IntToStr(Dialect)]);
+    ListViewData(['CodePage', IntToStr(CodePage)]);
+  end;
+end;
+
+(*
+procedure TFormChunkedFileExplorer.DisplayPlaylistSegmentItem(Chunk: TDefinedChunk);
+begin
+  with TPlaylistSegmentItem(Chunk) do
+  begin
+    ListViewData(['CuePointID', IntToStr(CuePointID)]);
+    ListViewData(['LengthInSamples', IntToStr(LengthInSamples)]);
+    ListViewData(['NumberOfRepeats', IntToStr(NumberOfRepeats)]);
+  end;
+end;
+
+  TPlaylistSegmentItem = class(TCollectionItem)
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  public
+    PlaylistSegment: TPlaylistSegmentRecord;
+
+    property CuePointID: Cardinal read PlaylistSegment.CuePointID
+      write PlaylistSegment.CuePointID;
+    property LengthInSamples: Cardinal read PlaylistSegment.LengthInSamples
+      write PlaylistSegment.LengthInSamples;
+    property NumberOfRepeats: Cardinal read PlaylistSegment.NumberOfRepeats
+      write PlaylistSegment.NumberOfRepeats;
+  end;
+
+  TPlaylistChunk = class(TWavDefinedChunk)
+  private
+    FCount: Cardinal;
+    FPlaylistSegments: TOwnedCollection;
+    procedure CalculateChunkSize;
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
+    class function GetClassChunkName: TChunkName; override;
+  end;
+*)
+
+procedure TFormChunkedFileExplorer.DisplaySilentChunk(Chunk: TDefinedChunk);
+begin
+  with TSilentChunk(Chunk) do
+  begin
+    ListViewData(['NumberOfSilentSamples', IntToStr(NumberOfSilentSamples)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayJunkChunk(Chunk: TDefinedChunk);
+begin
+  with TJunkChunk(Chunk) do
+  begin
+    ListViewData(['Padding', IntToStr(Padding)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayPadChunk(Chunk: TDefinedChunk);
+begin
+  with TPadChunk(Chunk) do
+  begin
+    ListViewData(['AlignSize', IntToStr(AlignSize)]);
+  end;
+end;
+
+(*
+procedure TFormChunkedFileExplorer.DisplayCueChunk(Chunk: TDefinedChunk);
+begin
+  with TJunkChunk(Chunk) do
+  begin
+    ListViewData(['AlignSize', IntToStr(AlignSize)]);
+  end;
+end;
+
+  TCuePointRecord = packed record
+    CuePointName: Cardinal;
+    CuePointPos: Cardinal;
+    CuePointChunk: TChunkName;
+    FilePosStart: Cardinal;
+    BlockStartPos: Cardinal;
+    SampleOffset: Cardinal;
+  end;
+
+  TCueItem = class(TCollectionItem)
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  public
+    CuePointRecord: TCuePointRecord;
+
+    property CuePointName: Cardinal read CuePointRecord.CuePointName
+      write CuePointRecord.CuePointName;
+    property CuePointSamplePosition: Cardinal read CuePointRecord.CuePointPos
+      write CuePointRecord.CuePointPos;
+    property FileStartPosition: Cardinal read CuePointRecord.FilePosStart
+      write CuePointRecord.FilePosStart;
+    property RelativeBlockStartPosition: Cardinal
+      read CuePointRecord.BlockStartPos write CuePointRecord.BlockStartPos;
+    property RelativeBlockSampleOffset: Cardinal
+      read CuePointRecord.SampleOffset write CuePointRecord.SampleOffset;
+  end;
+
+  TCueChunk = class(TWavDefinedChunk)
+  private
+    FCount: Cardinal;
+    FCueCollection: TOwnedCollection;
+    procedure CalculateChunkSize;
+  protected
+    procedure AssignTo(Dest: TPersistent); override;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
+    class function GetClassChunkName: TChunkName; override;
+  end;
+*)
+
+procedure TFormChunkedFileExplorer.DisplaySamplerChunk(Chunk: TDefinedChunk);
+begin
+  with TSamplerChunk(Chunk) do
+  begin
+    ListViewData(['Manufacturer', IntToStr(Integer(Manufacturer))]);
+    ListViewData(['Product', IntToStr(Product)]);
+    ListViewData(['SamplePeriod', IntToStr(SamplePeriod)]);
+    ListViewData(['MIDIUnityNote', IntToStr(MIDIUnityNote)]);
+    ListViewData(['MIDIPitchFraction', IntToStr(MIDIPitchFraction)]);
+    ListViewData(['SMPTEFormat', IntToStr(Integer(SMPTEFormat))]);
+    ListViewData(['SMPTEOffset', IntToStr(SMPTEOffset)]);
+    ListViewData(['NumSampleLoops', IntToStr(NumSampleLoops)]);
+    ListViewData(['SamplerData', IntToStr(SamplerData)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayInstrumentChunk(Chunk: TDefinedChunk);
+begin
+  with TInstrumentChunk(Chunk) do
+  begin
+    ListViewData(['UnshiftedNote', IntToStr(UnshiftedNote)]);
+    ListViewData(['FineTune', IntToStr(FineTune)]);
+    ListViewData(['Gain_dB', IntToStr(Gain_dB)]);
+    ListViewData(['LowNote', IntToStr(LowNote)]);
+    ListViewData(['HighNote', IntToStr(HighNote)]);
+    ListViewData(['LowVelocity', IntToStr(LowVelocity)]);
+    ListViewData(['HighVelocity', IntToStr(HighVelocity)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayBextChunk(Chunk: TDefinedChunk);
+begin
+  with TBextChunk(Chunk) do
+  begin
+    ListViewData(['Description', Description]);
+    ListViewData(['Originator', Originator]);
+    ListViewData(['OriginatorRef', OriginatorRef]);
+    ListViewData(['OriginationDate', OriginationDate]);
+    ListViewData(['OriginationTime', OriginationTime]);
+    ListViewData(['TimeRefLow', IntToStr(TimeRefLow)]);
+    ListViewData(['TimeRefHigh', IntToStr(TimeRefHigh)]);
+    ListViewData(['Version', IntToStr(Version)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayCartChunk(Chunk: TDefinedChunk);
+begin
+  with TCartChunk(Chunk) do
+  begin
+    ListViewData(['Title', Title]);
+    ListViewData(['Artist', Artist]);
+    ListViewData(['CutID', CutID]);
+    ListViewData(['ClientID', ClientID]);
+    ListViewData(['Category', Category]);
+    ListViewData(['Classification', Classification]);
+    ListViewData(['OutCue', OutCue]);
+    ListViewData(['StartDate', StartDate]);
+    ListViewData(['StartTime', StartTime]);
+    ListViewData(['EndDate', EndDate]);
+    ListViewData(['EndTime', EndTime]);
+    ListViewData(['ProducerAppID', ProducerAppID]);
+    ListViewData(['ProducerAppVersion', ProducerAppVersion]);
+    ListViewData(['UserDef', UserDef]);
+    ListViewData(['dbLevelReference', IntToStr(dbLevelReference)]);
+    ListViewData(['Version', IntToStr(Version)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAFspChunk(Chunk: TDefinedChunk);
+begin
+  with TWavAFspChunk(Chunk) do
+  begin
+    ListViewData(['Text', Text]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayBWFLinkChunk(Chunk: TDefinedChunk);
+begin
+  with TBWFLinkChunk(Chunk) do
+  begin
+    ListViewData(['XMLData', XMLData]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayBwfAXMLChunk(Chunk: TDefinedChunk);
+begin
+  with TBwfAXMLChunk(Chunk) do
+  begin
+    ListViewData(['XMLData', XMLData]);
   end;
 end;
 
