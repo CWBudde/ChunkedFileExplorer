@@ -152,6 +152,7 @@ type
     FMarkers: TOwnedCollection;
     procedure CalculateChunkSize;
     function GetMarkerCount: Byte;
+    function GetMarker(Index: Integer): TAiffMarkerItem;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -162,6 +163,7 @@ type
     class function GetClassChunkName: TChunkName; override;
 
     property MarkerCount: Byte read GetMarkerCount;
+    property Marker[Index: Integer]: TAiffMarkerItem read GetMarker;
   end;
 
   TAiffCommentRecord = packed record
@@ -193,6 +195,7 @@ type
     FComments: TOwnedCollection;
     procedure CalculateChunkSize;
     function GetCommentCount: Byte;
+    function GetComment(Index: Integer): TAiffCommentItem;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
@@ -203,6 +206,7 @@ type
     class function GetClassChunkName: TChunkName; override;
 
     property CommentCount: Byte read GetCommentCount;
+    property Comment[Index: Integer]: TAiffCommentItem read GetComment;
   end;
 
   TAiffInstrumentRecord = packed record // 'INST'
@@ -858,6 +862,14 @@ begin
   Result := 'MARK';
 end;
 
+function TAiffMarkerChunk.GetMarker(Index: Integer): TAiffMarkerItem;
+begin
+  if (Index < 0) or (Index >= FMarkers.Count) then
+    raise Exception.Create('Index out of bounds');
+
+  Result := TAiffMarkerItem(FMarkers.Items[Index]);
+end;
+
 function TAiffMarkerChunk.GetMarkerCount: Byte;
 begin
   Result := FMarkers.Count;
@@ -1012,6 +1024,14 @@ end;
 class function TAiffCommentChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'COMT';
+end;
+
+function TAiffCommentChunk.GetComment(Index: Integer): TAiffCommentItem;
+begin
+  if (Index < 0) or (Index >= FComments.Count) then
+    raise Exception.Create('Index out of bounds');
+
+  Result := TAiffCommentItem(FComments.Items[Index]);
 end;
 
 function TAiffCommentChunk.GetCommentCount: Byte;

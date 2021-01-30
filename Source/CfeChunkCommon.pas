@@ -810,7 +810,10 @@ begin
   inherited;
   with Stream do
   begin
-    ChunkEnd := Position + FChunkSize;
+    if cfIncludeChunkInSize in ChunkFlags then
+      ChunkEnd := Position + FChunkSize - 8
+    else
+      ChunkEnd := Position + FChunkSize;
     Assert(ChunkEnd <= Stream.Size);
     while Position < ChunkEnd do
     begin

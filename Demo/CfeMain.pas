@@ -79,33 +79,8 @@ type
     FBaseChunk: TChunkedFile;
     FDisplayProcs: TDictionary<TDefinedChunkClass, TDisplayChunk>;
     procedure InitializeDefaultListView;
-    procedure DisplayAFspChunk(Chunk: TDefinedChunk);
-    procedure DisplayBextChunk(Chunk: TDefinedChunk);
-    procedure DisplayBwfAXMLChunk(Chunk: TDefinedChunk);
-    procedure DisplayBWFLinkChunk(Chunk: TDefinedChunk);
-    procedure DisplayCartChunk(Chunk: TDefinedChunk);
-    procedure DisplayFactChunk(Chunk: TDefinedChunk);
-    procedure DisplayInfoArtist(Chunk: TDefinedChunk);
-    procedure DisplayInfoComment(Chunk: TDefinedChunk);
-    procedure DisplayInfoCopyright(Chunk: TDefinedChunk);
-    procedure DisplayInfoCreationDate(Chunk: TDefinedChunk);
-    procedure DisplayInfoSoftwareName(Chunk: TDefinedChunk);
-    procedure DisplayInfoSubject(Chunk: TDefinedChunk);
-    procedure DisplayInfoTitle(Chunk: TDefinedChunk);
-    procedure DisplayInstrumentChunk(Chunk: TDefinedChunk);
-    procedure DisplayJunkChunk(Chunk: TDefinedChunk);
-    procedure DisplayLabelChunk(Chunk: TDefinedChunk);
-    procedure DisplayLabeledTextChunk(Chunk: TDefinedChunk);
-    procedure DisplayNoteChunk(Chunk: TDefinedChunk);
-    procedure DisplayPadChunk(Chunk: TDefinedChunk);
-    procedure DisplaySamplerChunk(Chunk: TDefinedChunk);
-    procedure DisplaySilentChunk(Chunk: TDefinedChunk);
-  protected
-    procedure BaseChunkChanged;
 
-    procedure ListViewColumns(Columns: array of string);
-    procedure ListViewData(Strings: array of string);
-
+    (* PNG Chunks *)
     procedure DisplayHeaderChunk(Chunk: TDefinedChunk);
     procedure DisplayPaletteChunk(Chunk: TDefinedChunk);
     procedure DisplayChromaticitiesChunk(Chunk: TDefinedChunk);
@@ -120,6 +95,55 @@ type
     procedure DisplayTransparencyChunk(Chunk: TDefinedChunk);
     procedure DisplayHistogramChunk(Chunk: TDefinedChunk);
     procedure DisplayTimeChunk(Chunk: TDefinedChunk);
+
+    (* WAV Chunks *)
+    procedure DisplayWavAFsp(Chunk: TDefinedChunk);
+    procedure DisplayWavBext(Chunk: TDefinedChunk);
+    procedure DisplayWavBwfAXML(Chunk: TDefinedChunk);
+    procedure DisplayWavBWFLink(Chunk: TDefinedChunk);
+    procedure DisplayWavCart(Chunk: TDefinedChunk);
+    procedure DisplayWavFact(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoArtist(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoComment(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoCopyright(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoCreationDate(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoSoftwareName(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoSubject(Chunk: TDefinedChunk);
+    procedure DisplayWavInfoTitle(Chunk: TDefinedChunk);
+    procedure DisplayWavInstrument(Chunk: TDefinedChunk);
+    procedure DisplayWavJunk(Chunk: TDefinedChunk);
+    procedure DisplayWavLabel(Chunk: TDefinedChunk);
+    procedure DisplayWavLabeledText(Chunk: TDefinedChunk);
+    procedure DisplayWavNote(Chunk: TDefinedChunk);
+    procedure DisplayWavPad(Chunk: TDefinedChunk);
+    procedure DisplayWavSampler(Chunk: TDefinedChunk);
+    procedure DisplayWavSilent(Chunk: TDefinedChunk);
+
+    (* AIFF Chunks *)
+    procedure DisplayAiffCommon(Chunk: TDefinedChunk);
+    procedure DisplayAiffForm(Chunk: TDefinedChunk);
+    procedure DisplayAiffFormatVersion(Chunk: TDefinedChunk);
+    procedure DisplayAiffSoundData(Chunk: TDefinedChunk);
+    procedure DisplayAiffMarker(Chunk: TDefinedChunk);
+    procedure DisplayAiffComment(Chunk: TDefinedChunk);
+    procedure DisplayAiffInstrument(Chunk: TDefinedChunk);
+    procedure DisplayAiffAudioRecording(Chunk: TDefinedChunk);
+    procedure DisplayAiffApplicationSpecific(Chunk: TDefinedChunk);
+    procedure DisplayAiffName(Chunk: TDefinedChunk);
+    procedure DisplayAiffAuthor(Chunk: TDefinedChunk);
+    procedure DisplayAiffCopyright(Chunk: TDefinedChunk);
+    procedure DisplayAiffAnnotation(Chunk: TDefinedChunk);
+
+    (* MP4 Chunks *)
+    procedure DisplayMp4FileType(Chunk: TDefinedChunk);
+    procedure DisplayMp4Moov(Chunk: TDefinedChunk);
+    procedure DisplayMp4MovieHeader(Chunk: TDefinedChunk);
+  protected
+    procedure BaseChunkChanged;
+
+    procedure ListViewColumns(Columns: array of string);
+    procedure ListViewData(Strings: array of string);
+
     procedure DisplayFormatChunk(Chunk: TDefinedChunk);
   public
     procedure LoadFromFile(Filename: TFileName);
@@ -161,23 +185,42 @@ begin
   FDisplayProcs.Add(TChunkPngPhysicalPixelDimensions, DisplayPhysicalDimensionsChunk);
   FDisplayProcs.Add(TChunkPngSignificantBits, DisplaySignificantBitsChunk);
   FDisplayProcs.Add(TChunkPngTransparency, DisplayTransparencyChunk);
+
   FDisplayProcs.Add(TFormatChunk, DisplayFormatChunk);
-  FDisplayProcs.Add(TFactChunk, DisplayFactChunk);
-  FDisplayProcs.Add(TInfoArtistChunk, DisplayInfoArtist);
-  FDisplayProcs.Add(TInfoCommentChunk, DisplayInfoComment);
-  FDisplayProcs.Add(TInfoCopyrightChunk, DisplayInfoCopyright);
-  FDisplayProcs.Add(TInfoCreationDateChunk, DisplayInfoCreationDate);
-  FDisplayProcs.Add(TInfoSoftwareNameChunk, DisplayInfoSoftwareName);
-  FDisplayProcs.Add(TInfoSubjectChunk, DisplayInfoSubject);
-  FDisplayProcs.Add(TInfoTitleChunk, DisplayInfoTitle);
-  FDisplayProcs.Add(TInstrumentChunk, DisplayInstrumentChunk);
-  FDisplayProcs.Add(TJunkChunk, DisplayJunkChunk);
-  FDisplayProcs.Add(TLabelChunk, DisplayLabelChunk);
-  FDisplayProcs.Add(TLabeledTextChunk, DisplayLabeledTextChunk);
-  FDisplayProcs.Add(TNoteChunk, DisplayNoteChunk);
-  FDisplayProcs.Add(TPadChunk, DisplayPadChunk);
-  FDisplayProcs.Add(TSamplerChunk, DisplaySamplerChunk);
-  FDisplayProcs.Add(TSilentChunk, DisplaySilentChunk);
+  FDisplayProcs.Add(TFactChunk, DisplayWavFact);
+  FDisplayProcs.Add(TInfoArtistChunk, DisplayWavInfoArtist);
+  FDisplayProcs.Add(TInfoCommentChunk, DisplayWavInfoComment);
+  FDisplayProcs.Add(TInfoCopyrightChunk, DisplayWavInfoCopyright);
+  FDisplayProcs.Add(TInfoCreationDateChunk, DisplayWavInfoCreationDate);
+  FDisplayProcs.Add(TInfoSoftwareNameChunk, DisplayWavInfoSoftwareName);
+  FDisplayProcs.Add(TInfoSubjectChunk, DisplayWavInfoSubject);
+  FDisplayProcs.Add(TInfoTitleChunk, DisplayWavInfoTitle);
+  FDisplayProcs.Add(TInstrumentChunk, DisplayWavInstrument);
+  FDisplayProcs.Add(TJunkChunk, DisplayWavJunk);
+  FDisplayProcs.Add(TLabelChunk, DisplayWavLabel);
+  FDisplayProcs.Add(TLabeledTextChunk, DisplayWavLabeledText);
+  FDisplayProcs.Add(TNoteChunk, DisplayWavNote);
+  FDisplayProcs.Add(TPadChunk, DisplayWavPad);
+  FDisplayProcs.Add(TSamplerChunk, DisplayWavSampler);
+  FDisplayProcs.Add(TSilentChunk, DisplayWavSilent);
+
+  FDisplayProcs.Add(TAiffCommonChunk, DisplayAiffCommon);
+  FDisplayProcs.Add(TAiffFormChunk, DisplayAiffForm);
+  FDisplayProcs.Add(TAiffFormatVersionChunk, DisplayAiffFormatVersion);
+  FDisplayProcs.Add(TAiffSoundDataChunk, DisplayAiffSoundData);
+  FDisplayProcs.Add(TAiffMarkerChunk, DisplayAiffMarker);
+  FDisplayProcs.Add(TAiffCommentChunk, DisplayAiffComment);
+  FDisplayProcs.Add(TAiffInstrumentChunk, DisplayAiffInstrument);
+  FDisplayProcs.Add(TAiffAudioRecordingChunk, DisplayAiffAudioRecording);
+  FDisplayProcs.Add(TAiffApplicationSpecificChunk, DisplayAiffApplicationSpecific);
+  FDisplayProcs.Add(TAiffNameChunk, DisplayAiffName);
+  FDisplayProcs.Add(TAiffAuthorChunk, DisplayAiffAuthor);
+  FDisplayProcs.Add(TAiffCopyrightChunk, DisplayAiffCopyright);
+  FDisplayProcs.Add(TAiffAnnotationChunk, DisplayAiffAnnotation);
+
+  FDisplayProcs.Add(TMp4FileTypeChunk, DisplayMp4FileType);
+  FDisplayProcs.Add(TMp4MoovChunk, DisplayMp4Moov);
+  FDisplayProcs.Add(TMp4MovieHeaderChunk, DisplayMp4MovieHeader);
 end;
 
 procedure TFormChunkedFileExplorer.FormDestroy(Sender: TObject);
@@ -489,7 +532,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayFactChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavFact(Chunk: TDefinedChunk);
 begin
   with TFactChunk(Chunk) do
   begin
@@ -497,7 +540,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoSoftwareName(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoSoftwareName(Chunk: TDefinedChunk);
 begin
   with TInfoSoftwareNameChunk(Chunk) do
   begin
@@ -505,7 +548,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoComment(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoComment(Chunk: TDefinedChunk);
 begin
   with TInfoCommentChunk(Chunk) do
   begin
@@ -513,7 +556,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoCreationDate(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoCreationDate(Chunk: TDefinedChunk);
 begin
   with TInfoCreationDateChunk(Chunk) do
   begin
@@ -521,7 +564,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoCopyright(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoCopyright(Chunk: TDefinedChunk);
 begin
   with TInfoCopyrightChunk(Chunk) do
   begin
@@ -529,7 +572,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoSubject(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoSubject(Chunk: TDefinedChunk);
 begin
   with TInfoSubjectChunk(Chunk) do
   begin
@@ -537,7 +580,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoArtist(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoArtist(Chunk: TDefinedChunk);
 begin
   with TInfoArtistChunk(Chunk) do
   begin
@@ -545,7 +588,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInfoTitle(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInfoTitle(Chunk: TDefinedChunk);
 begin
   with TInfoTitleChunk(Chunk) do
   begin
@@ -553,7 +596,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayLabelChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavLabel(Chunk: TDefinedChunk);
 begin
   with TLabelChunk(Chunk) do
   begin
@@ -561,7 +604,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayNoteChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavNote(Chunk: TDefinedChunk);
 begin
   with TNoteChunk(Chunk) do
   begin
@@ -569,18 +612,18 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayLabeledTextChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavLabeledText(Chunk: TDefinedChunk);
 begin
   with TLabeledTextChunk(Chunk) do
   begin
     ListViewData(['Text', Text]);
-    ListViewData(['CuePointID', IntToStr(CuePointID)]);
+    ListViewData(['CuePoint ID', IntToStr(CuePointID)]);
     ListViewData(['SampleLength', IntToStr(SampleLength)]);
-    ListViewData(['PurposeID', IntToStr(PurposeID)]);
+    ListViewData(['Purpose ID', IntToStr(PurposeID)]);
     ListViewData(['Country', IntToStr(Country)]);
     ListViewData(['Language', IntToStr(Language)]);
     ListViewData(['Dialect', IntToStr(Dialect)]);
-    ListViewData(['CodePage', IntToStr(CodePage)]);
+    ListViewData(['Code Page', IntToStr(CodePage)]);
   end;
 end;
 
@@ -625,15 +668,15 @@ end;
   end;
 *)
 
-procedure TFormChunkedFileExplorer.DisplaySilentChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavSilent(Chunk: TDefinedChunk);
 begin
   with TSilentChunk(Chunk) do
   begin
-    ListViewData(['NumberOfSilentSamples', IntToStr(NumberOfSilentSamples)]);
+    ListViewData(['Number of Silent Samples', IntToStr(NumberOfSilentSamples)]);
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayJunkChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavJunk(Chunk: TDefinedChunk);
 begin
   with TJunkChunk(Chunk) do
   begin
@@ -641,11 +684,11 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayPadChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavPad(Chunk: TDefinedChunk);
 begin
   with TPadChunk(Chunk) do
   begin
-    ListViewData(['AlignSize', IntToStr(AlignSize)]);
+    ListViewData(['Align Size', IntToStr(AlignSize)]);
   end;
 end;
 
@@ -701,75 +744,75 @@ end;
   end;
 *)
 
-procedure TFormChunkedFileExplorer.DisplaySamplerChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavSampler(Chunk: TDefinedChunk);
 begin
   with TSamplerChunk(Chunk) do
   begin
     ListViewData(['Manufacturer', IntToStr(Integer(Manufacturer))]);
     ListViewData(['Product', IntToStr(Product)]);
-    ListViewData(['SamplePeriod', IntToStr(SamplePeriod)]);
-    ListViewData(['MIDIUnityNote', IntToStr(MIDIUnityNote)]);
-    ListViewData(['MIDIPitchFraction', IntToStr(MIDIPitchFraction)]);
-    ListViewData(['SMPTEFormat', IntToStr(Integer(SMPTEFormat))]);
-    ListViewData(['SMPTEOffset', IntToStr(SMPTEOffset)]);
-    ListViewData(['NumSampleLoops', IntToStr(NumSampleLoops)]);
-    ListViewData(['SamplerData', IntToStr(SamplerData)]);
+    ListViewData(['Sample Period', IntToStr(SamplePeriod)]);
+    ListViewData(['MIDI Unity Note', IntToStr(MIDIUnityNote)]);
+    ListViewData(['MIDI Pitch Fraction', IntToStr(MIDIPitchFraction)]);
+    ListViewData(['SMPTE Format', IntToStr(Integer(SMPTEFormat))]);
+    ListViewData(['SMPTE Offset', IntToStr(SMPTEOffset)]);
+    ListViewData(['NumSample Loops', IntToStr(NumSampleLoops)]);
+    ListViewData(['Sampler Data', IntToStr(SamplerData)]);
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayInstrumentChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavInstrument(Chunk: TDefinedChunk);
 begin
   with TInstrumentChunk(Chunk) do
   begin
-    ListViewData(['UnshiftedNote', IntToStr(UnshiftedNote)]);
-    ListViewData(['FineTune', IntToStr(FineTune)]);
-    ListViewData(['Gain_dB', IntToStr(Gain_dB)]);
-    ListViewData(['LowNote', IntToStr(LowNote)]);
-    ListViewData(['HighNote', IntToStr(HighNote)]);
-    ListViewData(['LowVelocity', IntToStr(LowVelocity)]);
-    ListViewData(['HighVelocity', IntToStr(HighVelocity)]);
+    ListViewData(['Unshifted Note', IntToStr(UnshiftedNote)]);
+    ListViewData(['Fine Tune', IntToStr(FineTune)]);
+    ListViewData(['Gain dB', IntToStr(Gain_dB)]);
+    ListViewData(['Low Note', IntToStr(LowNote)]);
+    ListViewData(['High Note', IntToStr(HighNote)]);
+    ListViewData(['Low Velocity', IntToStr(LowVelocity)]);
+    ListViewData(['High Velocity', IntToStr(HighVelocity)]);
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayBextChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavBext(Chunk: TDefinedChunk);
 begin
   with TBextChunk(Chunk) do
   begin
     ListViewData(['Description', Description]);
     ListViewData(['Originator', Originator]);
-    ListViewData(['OriginatorRef', OriginatorRef]);
-    ListViewData(['OriginationDate', OriginationDate]);
-    ListViewData(['OriginationTime', OriginationTime]);
-    ListViewData(['TimeRefLow', IntToStr(TimeRefLow)]);
-    ListViewData(['TimeRefHigh', IntToStr(TimeRefHigh)]);
+    ListViewData(['Originator Ref', OriginatorRef]);
+    ListViewData(['Origination Date', OriginationDate]);
+    ListViewData(['Origination Time', OriginationTime]);
+    ListViewData(['Time Ref Low', IntToStr(TimeRefLow)]);
+    ListViewData(['Time Ref High', IntToStr(TimeRefHigh)]);
     ListViewData(['Version', IntToStr(Version)]);
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayCartChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavCart(Chunk: TDefinedChunk);
 begin
   with TCartChunk(Chunk) do
   begin
     ListViewData(['Title', Title]);
     ListViewData(['Artist', Artist]);
-    ListViewData(['CutID', CutID]);
-    ListViewData(['ClientID', ClientID]);
+    ListViewData(['Cut ID', CutID]);
+    ListViewData(['Client ID', ClientID]);
     ListViewData(['Category', Category]);
     ListViewData(['Classification', Classification]);
-    ListViewData(['OutCue', OutCue]);
-    ListViewData(['StartDate', StartDate]);
-    ListViewData(['StartTime', StartTime]);
-    ListViewData(['EndDate', EndDate]);
-    ListViewData(['EndTime', EndTime]);
-    ListViewData(['ProducerAppID', ProducerAppID]);
-    ListViewData(['ProducerAppVersion', ProducerAppVersion]);
-    ListViewData(['UserDef', UserDef]);
-    ListViewData(['dbLevelReference', IntToStr(dbLevelReference)]);
+    ListViewData(['Out Cue', OutCue]);
+    ListViewData(['Start Date', StartDate]);
+    ListViewData(['Start Time', StartTime]);
+    ListViewData(['End Date', EndDate]);
+    ListViewData(['End Time', EndTime]);
+    ListViewData(['Producer App ID', ProducerAppID]);
+    ListViewData(['Producer App Version', ProducerAppVersion]);
+    ListViewData(['User Def', UserDef]);
+    ListViewData(['dB Level Reference', IntToStr(dbLevelReference)]);
     ListViewData(['Version', IntToStr(Version)]);
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayAFspChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavAFsp(Chunk: TDefinedChunk);
 begin
   with TWavAFspChunk(Chunk) do
   begin
@@ -777,7 +820,7 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayBWFLinkChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavBWFLink(Chunk: TDefinedChunk);
 begin
   with TBWFLinkChunk(Chunk) do
   begin
@@ -785,11 +828,189 @@ begin
   end;
 end;
 
-procedure TFormChunkedFileExplorer.DisplayBwfAXMLChunk(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayWavBwfAXML(Chunk: TDefinedChunk);
 begin
   with TBwfAXMLChunk(Chunk) do
   begin
     ListViewData(['XMLData', XMLData]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffCommon(Chunk: TDefinedChunk);
+begin
+  with TAiffCommonChunk(Chunk) do
+  begin
+    ListViewData(['Channels', IntToStr(Channels)]);
+    ListViewData(['Sampleframes', IntToStr(SampleFrames)]);
+    ListViewData(['Samplesize', IntToStr(SampleSize)]);
+    ListViewData(['Samplerate', FloatToStr(SampleRate)]);
+    ListViewData(['Compression', IntToStr(Integer(Compression))]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffForm(Chunk: TDefinedChunk);
+begin
+  with TAiffFormChunk(Chunk) do
+  begin
+    ListViewData(['FormType', IntToStr(Integer(FormType))]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffFormatVersion(Chunk: TDefinedChunk);
+begin
+  with TAiffFormatVersionChunk(Chunk) do
+  begin
+    ListViewData(['FormatVersion', IntToStr(TimeStamp)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffSoundData(Chunk: TDefinedChunk);
+begin
+  with TAiffSoundDataChunk(Chunk) do
+  begin
+    ListViewData(['Offset', IntToStr(Offset)]);
+    ListViewData(['BlockSize', IntToStr(BlockSize)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffMarker(Chunk: TDefinedChunk);
+var
+  Index: Integer;
+begin
+  with TAiffMarkerChunk(Chunk) do
+  begin
+    ListViewColumns(['Marker Name', 'Marker ID', 'Position']);
+    for Index := 0 to MarkerCount - 1 do
+      ListViewData([Marker[Index].MarkerName, IntToStr(Marker[Index].MarkerID), IntToStr(Marker[Index].Position)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffComment(Chunk: TDefinedChunk);
+var
+  Index: Integer;
+begin
+  with TAiffCommentChunk(Chunk) do
+  begin
+    ListViewColumns(['Comment', 'Marker ID', 'TimeStamp']);
+    for Index := 0 to CommentCount - 1 do
+      ListViewData([Comment[Index].Comment, IntToStr(Comment[Index].MarkerID), IntToStr(Comment[Index].TimeStamp)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffInstrument(Chunk: TDefinedChunk);
+begin
+  with TAiffInstrumentChunk(Chunk) do
+  begin
+    ListViewData(['BaseNote', IntToStr(BaseNote)]);
+    ListViewData(['Detune', IntToStr(Detune)]);
+    ListViewData(['Low Note', IntToStr(LowNote)]);
+    ListViewData(['High Note', IntToStr(HighNote)]);
+    ListViewData(['Low Velocity', IntToStr(LowVelocity)]);
+    ListViewData(['High Velocity', IntToStr(HighVelocity)]);
+    ListViewData(['Gain', IntToStr(Gain)]);
+    ListViewData(['Sustain Loop', IntToStr(SustainLoop)]);
+    ListViewData(['Release Loop', IntToStr(ReleaseLoop)]);
+  end;
+end;
+
+(*
+procedure TFormChunkedFileExplorer.DisplayAiffMidi(Chunk: TDefinedChunk);
+begin
+  with TAiffMIDIChunk(Chunk) do
+  begin
+    ListViewData(['MIDIData', IntToStr(MIDIData)]);
+    ListViewData(['Detune', IntToStr(Detune)]);
+    ListViewData(['LowNote', IntToStr(LowNote)]);
+    ListViewData(['HighNote', IntToStr(HighNote)]);
+    ListViewData(['LowVelocity', IntToStr(LowVelocity)]);
+    ListViewData(['HighVelocity', IntToStr(HighVelocity)]);
+    ListViewData(['Gain', IntToStr(Gain)]);
+    ListViewData(['SustainLoop', IntToStr(SustainLoop)]);
+    ListViewData(['ReleaseLoop', IntToStr(ReleaseLoop)]);
+  end;
+end;
+
+  TAiffMIDIChunk = class(TAiffDefinedChunk)
+    property MIDIData[index: Integer]: Byte read GetMIDIData;
+*)
+
+procedure TFormChunkedFileExplorer.DisplayAiffAudioRecording(Chunk: TDefinedChunk);
+begin
+  with TAiffAudioRecordingChunk(Chunk) do
+  begin
+    ListViewData(['AES Channel Status Data', AESChannelStatusData]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffApplicationSpecific(Chunk: TDefinedChunk);
+begin
+  with TAiffApplicationSpecificChunk(Chunk) do
+  begin
+    ListViewData(['Application Signature', ApplicationSignature]);
+    ListViewData(['Application Data', ApplicationDataAsString]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffName(Chunk: TDefinedChunk);
+begin
+  with TAiffNameChunk(Chunk) do
+  begin
+    ListViewData(['Name', Name]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffAuthor(Chunk: TDefinedChunk);
+begin
+  with TAiffAuthorChunk(Chunk) do
+  begin
+    ListViewData(['Author', Author]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffCopyright(Chunk: TDefinedChunk);
+begin
+  with TAiffCopyrightChunk(Chunk) do
+  begin
+    ListViewData(['Copyright', Copyright]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayAiffAnnotation(Chunk: TDefinedChunk);
+begin
+  with TAiffAnnotationChunk(Chunk) do
+  begin
+    ListViewData(['Annotation', Annotation]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4FileType(Chunk: TDefinedChunk);
+begin
+  with TMp4FileTypeChunk(Chunk) do
+  begin
+    ListViewData(['Major Brand', MajorBrand]);
+    ListViewData(['Minor Version', IntToStr(MinorVersion)]);
+    ListViewData(['Compatible Brands', CompatibleBrandsAsString]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4Moov(Chunk: TDefinedChunk);
+begin
+  with TMp4MoovChunk(Chunk) do
+  begin
+    ListViewData(['Sub Chunk Count', IntToStr(Count)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4MovieHeader(Chunk: TDefinedChunk);
+begin
+  with TMp4MovieHeaderChunk(Chunk) do
+  begin
+    ListViewData(['CreationTime', DateTimeToStr(CreationTime)]);
+    ListViewData(['ModificationTime', DateTimeToStr(ModificationTime)]);
+    ListViewData(['TimeScale', FloatToStr(TimeScale)]);
+    ListViewData(['Duration', FloatToStr(Duration)]);
+    ListViewData(['PreferredRate', FloatToStr(PreferredRate)]);
+    ListViewData(['PreferredVolume', FloatToStr(PreferredVolume)]);
   end;
 end;
 
@@ -860,10 +1081,26 @@ begin
 end;
 
 procedure TFormChunkedFileExplorer.BaseChunkChanged;
-var
-  Index: Integer;
-  Node: PVirtualNode;
-  NodeData: PTreeItem;
+
+  procedure ProcessChunk(Chunk: TCustomChunkContainer; Root: PVirtualNode);
+  var
+    Index: Integer;
+    Node: PVirtualNode;
+    NodeData: PTreeItem;
+  begin
+    for Index := 0 to Chunk.Count - 1 do
+    begin
+      Node := TreeView.AddChild(Root);
+      NodeData := TreeView.GetNodeData(Node);
+      NodeData^.Chunk := Chunk.SubChunk[Index];
+      NodeData^.Name := string(Chunk.SubChunk[Index].ChunkName);
+
+       // eventually crawl sub container
+      if Chunk.SubChunk[Index] is TCustomChunkContainer then
+        ProcessChunk(TCustomChunkContainer(Chunk.SubChunk[Index]), Node);
+    end;
+  end;
+
 begin
   if not Assigned(FBaseChunk) then
     exit;
@@ -873,13 +1110,7 @@ begin
     // begin update
     BeginUpdate;
 
-    for Index := 0 to FBaseChunk.Count - 1 do
-    begin
-      Node := AddChild(FRootNode);
-      NodeData := GetNodeData(Node);
-      NodeData^.Chunk := FBaseChunk.SubChunk[Index];
-      NodeData^.Name := string(FBaseChunk.SubChunk[Index].ChunkName);
-    end;
+    ProcessChunk(FBaseChunk, FRootNode);
 
     // expand tree
     FullExpand(FRootNode);
