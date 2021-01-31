@@ -138,6 +138,9 @@ type
     procedure DisplayMp4FileType(Chunk: TDefinedChunk);
     procedure DisplayMp4Moov(Chunk: TDefinedChunk);
     procedure DisplayMp4MovieHeader(Chunk: TDefinedChunk);
+    procedure DisplayMp4TrackHeader(Chunk: TDefinedChunk);
+    procedure DisplayMp4Data(Chunk: TDefinedChunk);
+    procedure DisplayMp4HandlerReference(Chunk: TDefinedChunk);
   protected
     procedure BaseChunkChanged;
 
@@ -221,6 +224,9 @@ begin
   FDisplayProcs.Add(TMp4FileTypeChunk, DisplayMp4FileType);
   FDisplayProcs.Add(TMp4MoovChunk, DisplayMp4Moov);
   FDisplayProcs.Add(TMp4MovieHeaderChunk, DisplayMp4MovieHeader);
+  FDisplayProcs.Add(TMp4TrackHeaderChunk, DisplayMp4TrackHeader);
+  FDisplayProcs.Add(TMp4HandlerReferenceChunk, DisplayMp4HandlerReference);
+  FDisplayProcs.Add(TMp4DataChunk, DisplayMp4Data);
 end;
 
 procedure TFormChunkedFileExplorer.FormDestroy(Sender: TObject);
@@ -1011,6 +1017,35 @@ begin
     ListViewData(['Duration', FloatToStr(Duration)]);
     ListViewData(['PreferredRate', FloatToStr(PreferredRate)]);
     ListViewData(['PreferredVolume', FloatToStr(PreferredVolume)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4TrackHeader(Chunk: TDefinedChunk);
+begin
+  with TMp4TrackHeaderChunk(Chunk) do
+  begin
+    ListViewData(['CreationTime', DateTimeToStr(CreationTime)]);
+    ListViewData(['ModificationTime', DateTimeToStr(ModificationTime)]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4HandlerReference(Chunk: TDefinedChunk);
+begin
+  with TMp4HandlerReferenceChunk(Chunk) do
+  begin
+    ListViewData(['Component Type', ComponentType]);
+    ListViewData(['Component Subtype', ComponentSubType]);
+    ListViewData(['Component Manufacturer', ComponentManufacturer]);
+  end;
+end;
+
+procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+begin
+  with TMp4DataChunk(Chunk) do
+  begin
+    ListViewData(['Type', IntToStr(&Type)]);
+    ListViewData(['Locale', IntToStr(Locale)]);
+    ListViewData(['Data', DataAsString]);
   end;
 end;
 

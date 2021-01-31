@@ -2,8 +2,8 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
   Left = 309
   Top = 95
   Caption = 'Chunked File Explorer'
-  ClientHeight = 514
-  ClientWidth = 789
+  ClientHeight = 762
+  ClientWidth = 869
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,22 +20,24 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
   object SpHorizontal: TSplitter
     Left = 200
     Top = 24
-    Height = 468
+    Height = 716
     ExplicitLeft = 204
     ExplicitHeight = 440
   end
   object PnMain: TPanel
     Left = 203
     Top = 24
-    Width = 586
-    Height = 468
+    Width = 666
+    Height = 716
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 586
+    ExplicitHeight = 468
     object SpVertical: TSplitter
       Left = 0
-      Top = 201
-      Width = 586
+      Top = 449
+      Width = 666
       Height = 3
       Cursor = crVSplit
       Align = alBottom
@@ -45,28 +47,32 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
     object ListView: TListView
       Left = 0
       Top = 0
-      Width = 586
-      Height = 201
+      Width = 666
+      Height = 449
       Align = alClient
       Columns = <>
       ReadOnly = True
       TabOrder = 0
       ViewStyle = vsReport
+      ExplicitWidth = 586
+      ExplicitHeight = 201
     end
     object PanelDetails: TPanel
       Left = 0
-      Top = 204
-      Width = 586
+      Top = 452
+      Width = 666
       Height = 264
       Align = alBottom
       BevelInner = bvLowered
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 1
+      ExplicitTop = 204
+      ExplicitWidth = 586
       object KHexEditor: TKHexEditor
         Left = 1
         Top = 1
-        Width = 584
+        Width = 664
         Height = 262
         Align = alClient
         Colors.DigitTextEven = 8388672
@@ -82,23 +88,26 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
         ReadOnly = True
         TabOrder = 0
         UndoLimit = 100
+        ExplicitWidth = 584
       end
     end
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 492
-    Width = 789
+    Top = 740
+    Width = 869
     Height = 22
     Panels = <
       item
         Width = 100
       end>
+    ExplicitTop = 492
+    ExplicitWidth = 789
   end
   object CoolBar: TCoolBar
     Left = 0
     Top = 0
-    Width = 789
+    Width = 869
     Height = 24
     Bands = <
       item
@@ -106,13 +115,14 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
         Control = ToolBar
         ImageIndex = -1
         MinHeight = 22
-        Width = 787
+        Width = 867
       end>
     EdgeBorders = [ebTop]
+    ExplicitWidth = 789
     object ToolBar: TToolBar
       Left = 11
       Top = 0
-      Width = 778
+      Width = 858
       Height = 22
       Caption = 'ToolBar'
       EdgeInner = esNone
@@ -161,7 +171,7 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
     Left = 0
     Top = 24
     Width = 200
-    Height = 468
+    Height = 716
     Align = alLeft
     Header.AutoSizeIndex = 0
     Header.MainColumn = -1
@@ -169,6 +179,7 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
     OnChange = TreeViewChange
     OnFreeNode = TreeViewFreeNode
     OnGetText = TreeViewGetText
+    ExplicitHeight = 468
     Columns = <>
   end
   object MainMenu: TMainMenu

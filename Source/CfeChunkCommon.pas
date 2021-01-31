@@ -437,7 +437,11 @@ begin
 
   // eventually flip bytes
   if cfReversedByteOrder in ChunkFlags then
-    Flip32(FChunkSize)
+    Flip32(FChunkSize);
+
+  // eventually exclude header
+  if cfIncludeChunkInSize in ChunkFlags then
+    FChunkSize := FChunkSize - 8;
 end;
 
 procedure TCustomChunk.SaveToStream(Stream: TStream);
@@ -552,10 +556,7 @@ begin
     FDataStream.Size := FChunkSize;
     FDataStream.Position := 0;
     if FChunkSize > 0 then
-      if cfIncludeChunkInSize in ChunkFlags then
-        FDataStream.CopyFrom(Stream, FChunkSize - 8)
-      else
-        FDataStream.CopyFrom(Stream, FChunkSize);
+      FDataStream.CopyFrom(Stream, FChunkSize);
 
     // eventually skip padded zeroes
     if cfPadSize in ChunkFlags then
@@ -810,10 +811,7 @@ begin
   inherited;
   with Stream do
   begin
-    if cfIncludeChunkInSize in ChunkFlags then
-      ChunkEnd := Position + FChunkSize - 8
-    else
-      ChunkEnd := Position + FChunkSize;
+    ChunkEnd := Position + FChunkSize;
     Assert(ChunkEnd <= Stream.Size);
     while Position < ChunkEnd do
     begin
