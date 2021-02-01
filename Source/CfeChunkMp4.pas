@@ -94,34 +94,30 @@ type
     property PreferredVolume: Single read GetPreferredVolume;
   end;
 
-  TMp4TrackHeader = record
-    Version: Byte;
-    Flags: array [0..2] of Byte;
-    CreationTime: Cardinal;
-    ModificationTime: Cardinal;
-    TrackID: Cardinal;
-    ReservedA: Cardinal;
-    Duration: Cardinal;
-    ReservedB: array [0..7] of Byte;
-    Layer: Word;
-    AlternateGroup: Word;
-    Volume: Word;
-    ReservedC: Word;
-    MatrixStructure: array [0..8] of Integer;
-    TrackWidth: Cardinal;
-    TrackHeight: Cardinal;
-  end;
-
-  TMp4TrackHeaderChunk = class(TMp4FixedDefinedChunk)
+  TMp4TrackHeaderChunk = class(TMp4DefinedChunk)
   private
-    FTrackHeader: TMp4TrackHeader;
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FCreationTime: Cardinal;
+    FModificationTime: Cardinal;
+    FTrackID: Cardinal;
+    FReservedA: Cardinal;
+    FDuration: Cardinal;
+    FReservedB: array [0..7] of Byte;
+    FLayer: Word;
+    FAlternateGroup: Word;
+    FVolume: Word;
+    FReservedC: Word;
+    FMatrixStructure: array [0..8] of Integer;
+    FTrackWidth: Cardinal;
+    FTrackHeight: Cardinal;
     function GetCreationTime: TDateTime;
     function GetModificationTime: TDateTime;
   public
-    constructor Create; override;
-
     class function GetClassChunkName: TChunkName; override;
-    class function GetClassChunkSize: Cardinal; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
 
     property CreationTime: TDateTime read GetCreationTime;
     property ModificationTime: TDateTime read GetModificationTime;
@@ -649,39 +645,103 @@ begin
 end;
 
 procedure TMp4MovieHeaderChunk.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
 begin
   inherited;
 
+  Stream.Write(FVersion, 1);
+  Stream.Write(FFlags[0], 3);
+
+  WriteSwappedCardinal(Stream, FCreationTime);
+  WriteSwappedCardinal(Stream, FModificationTime);
+  WriteSwappedCardinal(Stream, FTimeScale);
+  WriteSwappedCardinal(Stream, FDuration);
+  WriteSwappedCardinal(Stream, FPreferredRate);
+  WriteSwappedWord(Stream, FPreferredVolume);
+
+  // Write reserved
+  Stream.Write(FReserved[0], 10);
+
+  for Index := Low(FMatrixStructure) to High(FMatrixStructure) do
+    WriteSwappedCardinal(Stream, FMatrixStructure[Index]);
+  WriteSwappedCardinal(Stream, FPreviewTime);
+  WriteSwappedCardinal(Stream, FPreviewDuration);
+  WriteSwappedCardinal(Stream, FPosterTime);
+  WriteSwappedCardinal(Stream, FSelectionTime);
+  WriteSwappedCardinal(Stream, FSelectionDuration);
+  WriteSwappedCardinal(Stream, FCurrentTime);
+  WriteSwappedCardinal(Stream, FNextTrackId);
 end;
 
 
 { TMp4TrackHeaderChunk }
-
-constructor TMp4TrackHeaderChunk.Create;
-begin
-  inherited;
-
-  StartAddress := @FTrackHeader;
-end;
 
 class function TMp4TrackHeaderChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'tkhd';
 end;
 
-class function TMp4TrackHeaderChunk.GetClassChunkSize: Cardinal;
-begin
-  Result := SizeOf(TMp4TrackHeaderChunk);
-end;
-
 function TMp4TrackHeaderChunk.GetCreationTime: TDateTime;
 begin
-  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FTrackHeader.CreationTime);
+  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FCreationTime);
 end;
 
 function TMp4TrackHeaderChunk.GetModificationTime: TDateTime;
 begin
-  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FTrackHeader.ModificationTime);
+  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FModificationTime);
+end;
+
+procedure TMp4TrackHeaderChunk.LoadFromStream(Stream: TStream);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Stream.Read(FVersion, 1);
+  Stream.Read(FFlags[0], 3);
+
+  FCreationTime := ReadSwappedCardinal(Stream);
+  FModificationTime := ReadSwappedCardinal(Stream);
+
+  FTrackID := ReadSwappedCardinal(Stream);
+  FReservedA := ReadSwappedCardinal(Stream);
+  FDuration := ReadSwappedCardinal(Stream);
+  Stream.Read(FReservedB, 8);
+  FLayer := ReadSwappedWord(Stream);
+  FAlternateGroup := ReadSwappedWord(Stream);
+  FVolume := ReadSwappedWord(Stream);
+  FReservedC := ReadSwappedWord(Stream);
+  for Index := Low(FMatrixStructure) to High(FMatrixStructure) do
+    FMatrixStructure[Index] := ReadSwappedCardinal(Stream);
+  FTrackWidth := ReadSwappedCardinal(Stream);
+  FTrackHeight := ReadSwappedCardinal(Stream);
+end;
+
+procedure TMp4TrackHeaderChunk.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Stream.Write(FVersion, 1);
+  Stream.Write(FFlags[0], 3);
+
+  WriteSwappedCardinal(Stream, FCreationTime);
+  WriteSwappedCardinal(Stream, FModificationTime);
+
+  WriteSwappedCardinal(Stream, FTrackID);
+  WriteSwappedCardinal(Stream, FReservedA);
+  WriteSwappedCardinal(Stream, FDuration);
+  Stream.Write(FReservedB, 8);
+  WriteSwappedWord(Stream, FLayer);
+  WriteSwappedWord(Stream, FAlternateGroup);
+  WriteSwappedWord(Stream, FVolume);
+  WriteSwappedWord(Stream, FReservedC);
+  for Index := Low(FMatrixStructure) to High(FMatrixStructure) do
+    WriteSwappedCardinal(Stream, FMatrixStructure[Index]);
+  WriteSwappedCardinal(Stream, FTrackWidth);
+  WriteSwappedCardinal(Stream, FTrackHeight);
 end;
 
 
