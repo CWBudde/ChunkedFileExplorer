@@ -633,9 +633,11 @@ begin
   FDuration := ReadSwappedCardinal(Stream);
   FPreferredRate := ReadSwappedCardinal(Stream);
   FPreferredVolume := ReadSwappedWord(Stream);
+
+  // read reserved
   Stream.Read(FReserved[0], 10);
 
-  for Index := Low(FMatrixStructure) to High(FMatrixStructure) - 1 do
+  for Index := Low(FMatrixStructure) to High(FMatrixStructure) do
     FMatrixStructure[Index] := ReadSwappedCardinal(Stream);
   FPreviewTime := ReadSwappedCardinal(Stream);
   FPreviewDuration := ReadSwappedCardinal(Stream);
