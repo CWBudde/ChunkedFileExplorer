@@ -388,14 +388,16 @@ type
 
 implementation
 
+uses
+  CfeUtils;
+
 resourcestring
-  RCStrFORMChunkNotFound = 'This is not a AIFF file!';
+  RCStrFORMChunkNotFound = 'This is not a FORM file!';
   RCStrFORMSizeMismatch = 'Filesize mismatch';
-  RCStrAIFFChunkNotFound = 'This is not a WAVE file!';
+  RCStrAIFFChunkNotFound = 'This is not a AIFF file!';
   RCStrFMTChunkDublicate = 'One format chunk has already been found!';
   RCStrFACTChunkDublicate = 'One fact chunk has already been found!';
   RCStrDATAChunkDublicate = 'Only one data chunk supported!';
-  RCStrIntegerEncodingOnly = 'Audio encoding for AIFF is aeInteger only';
   RCStrOneVersionChunkOnly = 'Only one version chunk allowed';
   RCStrOneCommentChunkOnly = 'Only one comment chunk allowed';
   RCStrOneMarkerChunkOnly = 'Only one marker chunk allowed';
@@ -407,7 +409,7 @@ resourcestring
   RCStrOneSsndChunkOnly = 'Only one ssnd chunk allowed';
   RCStrNoSoundData = 'No sound data information found!';
 
-  { TAiffDefinedChunk }
+{ TAiffDefinedChunk }
 
 constructor TAiffDefinedChunk.Create;
 begin

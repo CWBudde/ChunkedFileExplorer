@@ -3,7 +3,7 @@ unit CfeChunkCommon;
 interface
 
 uses
-  Classes, Contnrs, SysUtils;
+  Classes, Contnrs, SysUtils, CfeUtils;
 
 type
   TChunkName = array [0..3] of AnsiChar;
@@ -223,43 +223,10 @@ const
 
 function CompareChunkNames(ChunkNameA, ChunkNameB: TChunkName): Boolean;
 
-procedure Flip16(var Value);
-procedure Flip32(var Value);
-procedure Flip64(var Value);
-procedure Flip80(var Value);
-
 implementation
 
 uses
   Types;
-
-{ Byte Ordering }
-
-type
-  T16Bit = record
-    case Integer of
-      0 :  (v: SmallInt);
-      1 :  (b: array[0..1] of Byte);
-  end;
-
-  T32Bit = record
-    case Integer of
-      0 :  (v: LongInt);
-      1 :  (b: array[0..3] of Byte);
-  end;
-
-  T64Bit = record
-    case Integer of
-      0 :  (v: Int64);
-      1 :  (b: array[0..7] of Byte);
-  end;
-
-  T80Bit = record
-    case Integer of
-      0 :  (v: Extended);
-      1 :  (b: array[0..9] of Byte);
-  end;
-
 
 function CompareChunkNames(ChunkNameA, ChunkNameB: TChunkName): Boolean;
 begin
@@ -274,80 +241,6 @@ begin
     Exit;
   Result := True;
 end;
-
-procedure Flip16(var Value);
-var
-  t: Byte;
-begin
- with T16Bit(Value) do
-  begin
-   t := b[0];
-   b[0] := b[1];
-   b[1] := t;
-  end;
-end;
-
-procedure Flip32(var Value);
-var
-  Temp: Byte;
-begin
- with T32Bit(Value) do
-  begin
-   Temp := b[0];
-   b[0] := b[3];
-   b[3] := Temp;
-   Temp := b[1];
-   b[1] := b[2];
-   b[2] := Temp;
-  end;
-end;
-
-procedure Flip64(var Value);
-var
-  Temp: Byte;
-begin
- with T64Bit(Value) do
-  begin
-   Temp := b[0];
-   b[0] := b[7];
-   b[7] := Temp;
-   Temp := b[1];
-   b[1] := b[6];
-   b[6] := Temp;
-   Temp := b[2];
-   b[2] := b[5];
-   b[5] := Temp;
-   Temp := b[3];
-   b[3] := b[4];
-   b[4] := Temp;
-  end;
-end;
-
-procedure Flip80(var Value);
-var
-  Temp: Byte;
-  T80B: T80Bit absolute Value;
-begin
- with T80B do
-  begin
-   Temp := b[0];
-   b[0] := b[9];
-   b[9] := Temp;
-   Temp := b[1];
-   b[1] := b[8];
-   b[8] := Temp;
-   Temp := b[2];
-   b[2] := b[7];
-   b[7] := Temp;
-   Temp := b[3];
-   b[3] := b[6];
-   b[6] := Temp;
-   Temp := b[4];
-   b[4] := b[5];
-   b[5] := Temp;
-  end;
-end;
-
 
 { TCustomChunk }
 

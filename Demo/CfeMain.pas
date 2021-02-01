@@ -1013,8 +1013,8 @@ begin
   begin
     ListViewData(['CreationTime', DateTimeToStr(CreationTime)]);
     ListViewData(['ModificationTime', DateTimeToStr(ModificationTime)]);
-    ListViewData(['TimeScale', FloatToStr(TimeScale)]);
-    ListViewData(['Duration', FloatToStr(Duration)]);
+    ListViewData(['TimeScale', FloatToStr(TimeScale) + ' units / s']);
+    ListViewData(['Duration', FloatToStr(Duration) + ' s']);
     ListViewData(['PreferredRate', FloatToStr(PreferredRate)]);
     ListViewData(['PreferredVolume', FloatToStr(PreferredVolume)]);
   end;

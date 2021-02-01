@@ -53,29 +53,25 @@ type
     class function GetClassChunkName: TChunkName; override;
   end;
 
-  TMp4MovieHeader = record
-    Version: Byte;
-    Flags: array [0..2] of Byte;
-    CreationTime: Cardinal;
-    ModificationTime: Cardinal;
-    TimeScale: Cardinal;
-    Duration: Cardinal;
-    PreferredRate: Cardinal;
-    PreferredVolume: Word;
-    Reserved: array [0..9] of Byte;
-    MatrixStructure: array [0..8] of Integer;
-    PreviewTime: Cardinal;
-    PreviewDuration: Cardinal;
-    PosterTime: Cardinal;
-    SelectionTime: Cardinal;
-    SelectionDuration: Cardinal;
-    CurrentTime: Cardinal;
-    NextTrackId: Cardinal;
-  end;
-
-  TMp4MovieHeaderChunk = class(TMp4FixedDefinedChunk)
+  TMp4MovieHeaderChunk = class(TMp4DefinedChunk)
   private
-    FMovieHeader: TMp4MovieHeader;
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FCreationTime: Cardinal;
+    FModificationTime: Cardinal;
+    FTimeScale: Cardinal;
+    FDuration: Cardinal;
+    FPreferredRate: Cardinal;
+    FPreferredVolume: Word;
+    FReserved: array [0..9] of Byte;
+    FMatrixStructure: array [0..8] of Integer;
+    FPreviewTime: Cardinal;
+    FPreviewDuration: Cardinal;
+    FPosterTime: Cardinal;
+    FSelectionTime: Cardinal;
+    FSelectionDuration: Cardinal;
+    FCurrentTime: Cardinal;
+    FNextTrackId: Cardinal;
     function GetCreationTime: TDateTime;
     function GetDuration: Single;
     function GetModificationTime: TDateTime;
@@ -86,7 +82,9 @@ type
     constructor Create; override;
 
     class function GetClassChunkName: TChunkName; override;
-    class function GetClassChunkSize: Cardinal; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
 
     property CreationTime: TDateTime read GetCreationTime;
     property ModificationTime: TDateTime read GetModificationTime;
@@ -315,6 +313,22 @@ type
     class function GetClassChunkSize: Cardinal; override;
   end;
 
+  TMp4TimeToSample = record
+    Version: Byte;
+    Flags: array [0..2] of Byte;
+    NumberOfEntries: Cardinal;
+  end;
+
+  TMp4TimeToSampleChunk = class(TMp4FixedDefinedChunk)
+  private
+    FTimeToSample: TMp4TimeToSample;
+  public
+    constructor Create; override;
+
+    class function GetClassChunkName: TChunkName; override;
+    class function GetClassChunkSize: Cardinal; override;
+  end;
+
   TMp4SampleTableChunk = class(TMp4ContainerChunk)
   public
     constructor Create; override;
@@ -426,7 +440,7 @@ type
 implementation
 
 uses
-  DateUtils;
+  DateUtils, CfeUtils;
 
 { TMp4DefinedChunk }
 
@@ -540,39 +554,33 @@ constructor TMp4MovieHeaderChunk.Create;
 begin
   inherited;
 
-  // set initial values
-  with FMovieHeader do
-  begin
-    Version := 0;
-    Flags[0] := 0;
-    Flags[1] := 0;
-    Flags[2] := 0;
-    CreationTime := SecondsBetween(Now, EncodeDateTime(1904, 1, 1, 0, 0, 0, 0));
-    ModificationTime := SecondsBetween(Now, EncodeDateTime(1904, 1, 1, 0, 0, 0, 0));
-    TimeScale := $3E8;
-    Duration := $57BC0;
-    PreferredRate := $10000;
-    PreferredVolume := $100;
-    FillChar(Reserved[0], 10, 0);
-    MatrixStructure[0] := $100;
-    MatrixStructure[1] := 0;
-    MatrixStructure[2] := 0;
-    MatrixStructure[3] := 0;
-    MatrixStructure[4] := $100;
-    MatrixStructure[5] := 0;
-    MatrixStructure[6] := 0;
-    MatrixStructure[7] := 0;
-    MatrixStructure[8] := $40;
-    PreviewTime := 0;
-    PreviewDuration := 0;
-    PosterTime := 0;
-    SelectionTime := 0;
-    SelectionDuration := 0;
-    CurrentTime := 0;
-    NextTrackId := $2000000;
-  end;
-
-  StartAddress := @FMovieHeader;
+  FVersion := 0;
+  FFlags[0] := 0;
+  FFlags[1] := 0;
+  FFlags[2] := 0;
+  FCreationTime := SecondsBetween(Now, EncodeDateTime(1904, 1, 1, 0, 0, 0, 0));
+  FModificationTime := SecondsBetween(Now, EncodeDateTime(1904, 1, 1, 0, 0, 0, 0));
+  FTimeScale := $3E8;
+  FDuration := $57BC0;
+  FPreferredRate := $10000;
+  FPreferredVolume := $100;
+  FillChar(FReserved[0], 10, 0);
+  FMatrixStructure[0] := $100;
+  FMatrixStructure[1] := 0;
+  FMatrixStructure[2] := 0;
+  FMatrixStructure[3] := 0;
+  FMatrixStructure[4] := $100;
+  FMatrixStructure[5] := 0;
+  FMatrixStructure[6] := 0;
+  FMatrixStructure[7] := 0;
+  FMatrixStructure[8] := $40;
+  FPreviewTime := 0;
+  FPreviewDuration := 0;
+  FPosterTime := 0;
+  FSelectionTime := 0;
+  FSelectionDuration := 0;
+  FCurrentTime := 0;
+  FNextTrackId := $2000000;
 end;
 
 class function TMp4MovieHeaderChunk.GetClassChunkName: TChunkName;
@@ -580,39 +588,68 @@ begin
   Result := 'mvhd';
 end;
 
-class function TMp4MovieHeaderChunk.GetClassChunkSize: Cardinal;
-begin
-  Result := SizeOf(TMp4MovieHeader);
-end;
-
 function TMp4MovieHeaderChunk.GetCreationTime: TDateTime;
 begin
-  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FMovieHeader.CreationTime);
+  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FCreationTime);
 end;
 
 function TMp4MovieHeaderChunk.GetDuration: Single;
 begin
-  Result :=  FMovieHeader.Duration / FMovieHeader.TimeScale;
+  Result :=  FDuration / TimeScale;
 end;
 
 function TMp4MovieHeaderChunk.GetModificationTime: TDateTime;
 begin
-  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FMovieHeader.ModificationTime);
+  Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FModificationTime);
 end;
 
 function TMp4MovieHeaderChunk.GetPreferredRate: Single;
 begin
-  Result :=  FMovieHeader.PreferredRate / $10000;
+  Result := FPreferredRate / $10000;
 end;
 
 function TMp4MovieHeaderChunk.GetPreferredVolume: Single;
 begin
-  Result :=  FMovieHeader.PreferredVolume / $100;
+  Result := FPreferredVolume / $100;
 end;
 
 function TMp4MovieHeaderChunk.GetTimeScale: Single;
 begin
-  Result := 1  / FMovieHeader.TimeScale;
+  Result := FTimeScale;
+end;
+
+procedure TMp4MovieHeaderChunk.LoadFromStream(Stream: TStream);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Stream.Read(FVersion, 1);
+  Stream.Read(FFlags[0], 3);
+
+  FCreationTime := ReadSwappedCardinal(Stream);
+  FModificationTime := ReadSwappedCardinal(Stream);
+  FTimeScale := ReadSwappedCardinal(Stream);
+  FDuration := ReadSwappedCardinal(Stream);
+  FPreferredRate := ReadSwappedCardinal(Stream);
+  FPreferredVolume := ReadSwappedWord(Stream);
+  Stream.Read(FReserved[0], 10);
+
+  for Index := Low(FMatrixStructure) to High(FMatrixStructure) - 1 do
+    FMatrixStructure[Index] := ReadSwappedCardinal(Stream);
+  FPreviewTime := ReadSwappedCardinal(Stream);
+  FPreviewDuration := ReadSwappedCardinal(Stream);
+  FPosterTime := ReadSwappedCardinal(Stream);
+  FSelectionTime := ReadSwappedCardinal(Stream);
+  FSelectionDuration := ReadSwappedCardinal(Stream);
+  FCurrentTime := ReadSwappedCardinal(Stream);
+  FNextTrackId := ReadSwappedCardinal(Stream);
+end;
+
+procedure TMp4MovieHeaderChunk.SaveToStream(Stream: TStream);
+begin
+  inherited;
+
 end;
 
 
@@ -953,6 +990,26 @@ end;
 class function TMp4SampleDescriptionChunk.GetClassChunkSize: Cardinal;
 begin
   Result := SizeOf(TMp4SampleDescription);
+end;
+
+
+{ TMp4TimeToSampleChunk }
+
+constructor TMp4TimeToSampleChunk.Create;
+begin
+  inherited;
+
+  StartAddress := @FTimeToSample;
+end;
+
+class function TMp4TimeToSampleChunk.GetClassChunkName: TChunkName;
+begin
+  Result := 'stts';
+end;
+
+class function TMp4TimeToSampleChunk.GetClassChunkSize: Cardinal;
+begin
+  Result := SizeOf(TMp4TimeToSample);
 end;
 
 
