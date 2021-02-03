@@ -575,6 +575,8 @@ type
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
     class function GetClassChunkName: TChunkName; override;
+
+    property PlaylistSegments: TOwnedCollection read FPlaylistSegments;
   end;
 
   TSilentRecord = packed record
@@ -632,9 +634,9 @@ type
   end;
 
   TCuePointRecord = packed record
-    CuePointName: Cardinal;
+    CuePointName: TChunkName;
     CuePointPos: Cardinal;
-    CuePointChunk: TChunkName;
+    CuePointChunk: Cardinal;
     FilePosStart: Cardinal;
     BlockStartPos: Cardinal;
     SampleOffset: Cardinal;
@@ -646,7 +648,7 @@ type
   public
     CuePointRecord: TCuePointRecord;
 
-    property CuePointName: Cardinal read CuePointRecord.CuePointName
+    property CuePointName: TChunkName read CuePointRecord.CuePointName
       write CuePointRecord.CuePointName;
     property CuePointSamplePosition: Cardinal read CuePointRecord.CuePointPos
       write CuePointRecord.CuePointPos;
@@ -671,6 +673,8 @@ type
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
     class function GetClassChunkName: TChunkName; override;
+
+    property CueCollection: TOwnedCollection read FCueCollection;
   end;
 
   TSMPTEFormat = (soZero = 0, so24 = 24, so25 = 25, so30Drop = 29, so30 = 30);

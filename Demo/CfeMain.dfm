@@ -32,8 +32,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 586
-    ExplicitHeight = 468
     object SpVertical: TSplitter
       Left = 0
       Top = 449
@@ -54,8 +52,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
       ReadOnly = True
       TabOrder = 0
       ViewStyle = vsReport
-      ExplicitWidth = 586
-      ExplicitHeight = 201
     end
     object PanelDetails: TPanel
       Left = 0
@@ -67,8 +63,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
       BevelOuter = bvNone
       Color = clWhite
       TabOrder = 1
-      ExplicitTop = 204
-      ExplicitWidth = 586
       object KHexEditor: TKHexEditor
         Left = 1
         Top = 1
@@ -88,7 +82,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
         ReadOnly = True
         TabOrder = 0
         UndoLimit = 100
-        ExplicitWidth = 584
       end
     end
   end
@@ -101,8 +94,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
       item
         Width = 100
       end>
-    ExplicitTop = 492
-    ExplicitWidth = 789
   end
   object CoolBar: TCoolBar
     Left = 0
@@ -118,7 +109,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
         Width = 867
       end>
     EdgeBorders = [ebTop]
-    ExplicitWidth = 789
     object ToolBar: TToolBar
       Left = 11
       Top = 0
@@ -179,7 +169,6 @@ object FormChunkedFileExplorer: TFormChunkedFileExplorer
     OnChange = TreeViewChange
     OnFreeNode = TreeViewFreeNode
     OnGetText = TreeViewGetText
-    ExplicitHeight = 468
     Columns = <>
   end
   object MainMenu: TMainMenu

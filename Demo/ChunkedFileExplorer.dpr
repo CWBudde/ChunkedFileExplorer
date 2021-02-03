@@ -10,7 +10,8 @@ uses
   CfeChunkPng in '..\Source\CfeChunkPng.pas',
   CfeChunkWave in '..\Source\CfeChunkWave.pas',
   CfeChunkAiff in '..\Source\CfeChunkAiff.pas',
-  CfeChunkMp4 in '..\Source\CfeChunkMp4.pas';
+  CfeChunkMp4 in '..\Source\CfeChunkMp4.pas',
+  CfeUtils in '..\Source\CfeUtils.pas';
 
 {$R *.res}
 
