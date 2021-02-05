@@ -245,6 +245,7 @@ type
   TAiffMIDIChunk = class(TAiffDefinedChunk)
   private
     function GetMIDIData(index: Integer): Byte;
+    function GetCount: Integer;
   protected
     FMIDIData: array of Byte;
     procedure AssignTo(Dest: TPersistent); override;
@@ -253,7 +254,9 @@ type
     procedure SaveToStream(Stream: TStream); override;
   public
     class function GetClassChunkName: TChunkName; override;
+
     property MIDIData[index: Integer]: Byte read GetMIDIData;
+    property Count: Integer read GetCount;
   end;
 
   TAiffAudioRecordingRecord = packed record
@@ -1131,6 +1134,11 @@ end;
 class function TAiffMIDIChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'MIDI';
+end;
+
+function TAiffMIDIChunk.GetCount: Integer;
+begin
+  Result := Length(FMididata);
 end;
 
 function TAiffMIDIChunk.GetMIDIData(index: Integer): Byte;

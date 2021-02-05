@@ -142,14 +142,22 @@ type
     procedure DisplayMp4Moov(Chunk: TDefinedChunk);
     procedure DisplayMp4MovieHeader(Chunk: TDefinedChunk);
     procedure DisplayMp4MediaHeader(Chunk: TDefinedChunk);
+    procedure DisplayMp4HandlerReference(Chunk: TDefinedChunk);
     procedure DisplayMp4VideoMediaInformation(Chunk: TDefinedChunk);
     procedure DisplayMp4SoundMediaInformation(Chunk: TDefinedChunk);
     procedure DisplayMp4BaseMediaInformation(Chunk: TDefinedChunk);
     procedure DisplayMp4TrackHeader(Chunk: TDefinedChunk);
+    procedure DisplayMp4EditList(Chunk: TDefinedChunk);
     procedure DisplayMp4SampleGroupDescription(Chunk: TDefinedChunk);
     procedure DisplayMp4SampleToGroup(Chunk: TDefinedChunk);
+    procedure DisplayMp4ElementaryStreamDescriptor(Chunk: TDefinedChunk);
+    procedure DisplayMp4Mp4a(Chunk: TDefinedChunk);
+    procedure DisplayMp4SyncSample(Chunk: TDefinedChunk);
+    procedure DisplayMp4TimeToSample(Chunk: TDefinedChunk);
+    procedure DisplayMp4SampleToChunk(Chunk: TDefinedChunk);
+    procedure DisplayMp4SampleSize(Chunk: TDefinedChunk);
+    procedure DisplayMp4ChunkOffset(Chunk: TDefinedChunk);
     procedure DisplayMp4Data(Chunk: TDefinedChunk);
-    procedure DisplayMp4HandlerReference(Chunk: TDefinedChunk);
   protected
     procedure BaseChunkChanged;
 
@@ -225,6 +233,7 @@ begin
   FDisplayProcs.Add(TAiffMarkerChunk, DisplayAiffMarker);
   FDisplayProcs.Add(TAiffCommentChunk, DisplayAiffComment);
   FDisplayProcs.Add(TAiffInstrumentChunk, DisplayAiffInstrument);
+  FDisplayProcs.Add(TAiffMidiChunk, DisplayAiffMidi);
   FDisplayProcs.Add(TAiffAudioRecordingChunk, DisplayAiffAudioRecording);
   FDisplayProcs.Add(TAiffApplicationSpecificChunk, DisplayAiffApplicationSpecific);
   FDisplayProcs.Add(TAiffNameChunk, DisplayAiffName);
@@ -236,11 +245,19 @@ begin
   FDisplayProcs.Add(TMp4MoovChunk, DisplayMp4Moov);
   FDisplayProcs.Add(TMp4MovieHeaderChunk, DisplayMp4MovieHeader);
   FDisplayProcs.Add(TMp4MediaHeaderChunk, DisplayMp4MediaHeader);
+  FDisplayProcs.Add(TMp4HandlerReferenceChunk, DisplayMp4HandlerReference);
   FDisplayProcs.Add(TMp4VideoMediaInformationChunk, DisplayMp4VideoMediaInformation);
   FDisplayProcs.Add(TMp4SoundMediaInformationChunk, DisplayMp4SoundMediaInformation);
   FDisplayProcs.Add(TMp4BaseMediaInformationChunk, DisplayMp4BaseMediaInformation);
   FDisplayProcs.Add(TMp4TrackHeaderChunk, DisplayMp4TrackHeader);
-  FDisplayProcs.Add(TMp4HandlerReferenceChunk, DisplayMp4HandlerReference);
+  FDisplayProcs.Add(TMp4EditListChunk, DisplayMp4EditList);
+  FDisplayProcs.Add(TMp4ElementaryStreamDescriptorChunk, DisplayMp4ElementaryStreamDescriptor);
+  FDisplayProcs.Add(TMp4Mp4aChunk, DisplayMp4Mp4a);
+  FDisplayProcs.Add(TMp4SyncSampleChunk, DisplayMp4SyncSample);
+  FDisplayProcs.Add(TMp4TimeToSampleChunk, DisplayMp4TimeToSample);
+  FDisplayProcs.Add(TMp4SampleToChunkChunk, DisplayMp4SampleToChunk);
+  FDisplayProcs.Add(TMp4SampleSizeChunk, DisplayMp4SampleSize);
+  FDisplayProcs.Add(TMp4ChunkOffsetChunk, DisplayMp4ChunkOffset);
   FDisplayProcs.Add(TMp4SampleGroupDescriptionChunk, DisplayMp4SampleGroupDescription);
   FDisplayProcs.Add(TMp4SampleToGroupChunk, DisplayMp4SampleToGroup);
   FDisplayProcs.Add(TMp4DataChunk, DisplayMp4Data);
@@ -253,10 +270,43 @@ begin
   FreeAndNil(FDisplayProcs);
 end;
 
+type
+  TOpenChunk = class(TCustomChunk);
+
+procedure ResetChunkSize(ContainerChunk: TCustomChunkContainer);
+var
+  Index: Integer;
+begin
+  for Index := 0 to ContainerChunk.Count - 1 do
+  begin
+    TOpenChunk(ContainerChunk.SubChunk[Index]).FChunkSize := 0;
+    if ContainerChunk.SubChunk[Index] is TCustomChunkContainer then
+      ResetChunkSize(TCustomChunkContainer(ContainerChunk.SubChunk[Index]));
+  end;
+end;
+
 procedure TFormChunkedFileExplorer.FormShow(Sender: TObject);
+var
+  MS: TMemoryStream;
+  Index: Integer;
 begin
   if FileExists(ParamStr(1)) then
     LoadFromFile(ParamStr(1));
+
+  MS := TMemoryStream.Create;
+  try
+    ResetChunkSize(FBaseChunk);
+
+    FBaseChunk.SaveToStream(MS);
+
+    MS.SaveToFile('A:\temp.mp4a');
+(*
+    MS.Position := 0;
+    LoadFromStream(MS);
+*)
+  finally
+    MS.Free;
+  end;
 end;
 
 procedure TFormChunkedFileExplorer.InitializeDefaultListView;
@@ -883,17 +933,17 @@ begin
 end;
 
 procedure TFormChunkedFileExplorer.DisplayAiffMidi(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
   with TAiffMIDIChunk(Chunk) do
   begin
-//    ListViewData(['MIDIData', IntToStr(MIDIData)]);
+    ListViewColumns(['Index', 'Data']);
+
+    for Index := 0 to Count - 1 do
+      ListViewData([IntToStr(Index), IntToStr(MIDIData[Index])]);
   end;
 end;
-
-(*
-  TAiffMIDIChunk = class(TAiffDefinedChunk)
-    property MIDIData[index: Integer]: Byte read GetMIDIData;
-*)
 
 procedure TFormChunkedFileExplorer.DisplayAiffAudioRecording(Chunk: TDefinedChunk);
 begin
@@ -979,61 +1029,37 @@ procedure TFormChunkedFileExplorer.DisplayMp4TrackHeader(Chunk: TDefinedChunk);
 begin
   with TMp4TrackHeaderChunk(Chunk) do
   begin
+    ListViewData(['Track enabled', BoolToStr(IsEnabled, True)]);
+    ListViewData(['Track in movie', BoolToStr(IsInMovie, True)]);
+    ListViewData(['Track in preview', BoolToStr(IsInPreview, True)]);
+    ListViewData(['Track in poster', BoolToStr(IsInPoster, True)]);
     ListViewData(['CreationTime', DateTimeToStr(CreationTime)]);
     ListViewData(['ModificationTime', DateTimeToStr(ModificationTime)]);
+    ListViewData(['TrackWidth', IntToStr(TrackWidth)]);
+    ListViewData(['TrackHeight', IntToStr(TrackHeight)]);
+    ListViewData(['TrackID', IntToStr(TrackID)]);
+    ListViewData(['Duration', IntToStr(Duration)]);
+    ListViewData(['Layer', IntToStr(Layer)]);
+    ListViewData(['AlternateGroup', IntToStr(AlternateGroup)]);
+    ListViewData(['Volume', FloatToStr(Volume)]);
   end;
 end;
 
-(*
-  TMp4EditListEntry = class
-  private
-    FTrackDuration: Cardinal;
-    FMediaTime: Cardinal;
-    FMediaRate: Cardinal;
-  public
-    procedure LoadFromStream(Stream: TStream);
-    procedure SaveToStream(Stream: TStream);
+procedure TFormChunkedFileExplorer.DisplayMp4EditList(Chunk: TDefinedChunk);
+var
+  Index: Integer;
+begin
+  with TMp4EditListChunk(Chunk) do
+  begin
+    ListViewColumns(['TrackDuration', 'MediaTime', 'MediaRate']);
+
+    for Index := 0 to EditList.Count - 1 do
+      ListViewData([
+        IntToStr(EditList[Index].TrackDuration),
+        IntToStr(EditList[Index].MediaTime),
+        FloatToStr(EditList[Index].MediaRate)]);
   end;
-
-  TMp4EditListEntryList = class(TObjectList)
-  protected
-    function GetItem(Index: Integer): TMp4EditListEntry;
-    procedure SetItem(Index: Integer; AChunk: TMp4EditListEntry);
-  public
-    function Add(AChunk: TMp4EditListEntry): Integer;
-    function Extract(Item: TMp4EditListEntry): TMp4EditListEntry;
-    function Remove(AChunk: TMp4EditListEntry): Integer;
-    function IndexOf(AChunk: TMp4EditListEntry): Integer;
-    procedure Insert(Index: Integer; AChunk: TMp4EditListEntry);
-    function First: TMp4EditListEntry;
-    function Last: TMp4EditListEntry;
-
-    property Items[Index: Integer]: TMp4EditListEntry read GetItem write SetItem; default;
-  end;
-
-  TMp4EditListChunk = class(TMp4DefinedChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-    FList: TMp4EditListEntryList;
-  public
-    constructor Create; override;
-    destructor Destroy; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-  TMp4EditChunk = class(TMp4ContainerChunk)
-  public
-    constructor Create; override;
-
-    class function GetClassChunkName: TChunkName; override;
-  end;
-*)
+end;
 
 procedure TFormChunkedFileExplorer.DisplayMp4MediaHeader(Chunk: TDefinedChunk);
 begin
@@ -1061,11 +1087,9 @@ begin
   with TMp4VideoMediaInformationChunk(Chunk) do
   begin
     ListViewData(['GraphicsMode', IntToStr(GraphicsMode)]);
-(*
-    ListViewData(['OpColor[0]', OpColor[0]]);
-    ListViewData(['OpColor[1]', OpColor[1]]);
-    ListViewData(['OpColor[2]', OpColor[2]]);
-*)
+    ListViewData(['OpColor[0]', IntToStr(OpColor[0])]);
+    ListViewData(['OpColor[1]', IntToStr(OpColor[1])]);
+    ListViewData(['OpColor[2]', IntToStr(OpColor[2])]);
   end;
 end;
 
@@ -1086,249 +1110,102 @@ begin
   end;
 end;
 
-(*
-  TMp4DataReferenceChunk = class(TMp4ContainerChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-  public
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4DataReference(Chunk: TDefinedChunk);
-begin
-  with TMp4DataReferenceChunk(Chunk) do
-  begin
-  end;
-end;
-*)
-
-(*
-  TMp4ElementaryStreamDescriptorChunk = class(TMp4DefinedChunk)
-  private
-    FBitStream: TMemoryStream;
-  public
-    constructor Create; override;
-    destructor Destroy; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
 procedure TFormChunkedFileExplorer.DisplayMp4ElementaryStreamDescriptor(Chunk: TDefinedChunk);
 begin
   with TMp4ElementaryStreamDescriptorChunk(Chunk) do
   begin
+    ListViewData(['StreamPriority', IntToStr(Integer(StreamPriority))]);
+    ListViewData(['StreamType', IntToStr(Integer(StreamType))]);
+    ListViewData(['UpstreamFlag', BoolToStr(UpstreamFlag, True)]);
+    ListViewData(['BufferSize', IntToStr(BufferSize)]);
+    ListViewData(['MaximumBitRate', IntToStr(MaximumBitRate)]);
+    ListViewData(['AverageBitRate', IntToStr(AverageBitRate)]);
+//    ListViewData(['DecoderSpecificData', IntToStr(SampleRate)]);
   end;
 end;
-*)
 
-(*
-  TMp4Mp4aChunk = class(TMp4ContainerChunk)
-  private
-    FUnknownA: array [0..11] of Byte;
-    FDataReferenceIndex: Cardinal;
-    FUnknownB: array [0..7] of Byte;
-    FChannelCount: Cardinal;
-    FSampleSize: Cardinal;
-    FUnknownC: array [0..1] of Byte;
-    FSampleRate: Cardinal;
-    FUnknownD: array [0..1] of Byte;
-  public
-    constructor Create; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4Mp4a(Chunk: TDefinedChunk);
 begin
-  with TMp4DataChunk(Chunk) do
+  with TMp4Mp4aChunk(Chunk) do
   begin
+    ListViewData(['DataReferenceIndex', IntToStr(DataReferenceIndex)]);
+    ListViewData(['ChannelCount', IntToStr(ChannelCount)]);
+    ListViewData(['SampleSize', IntToStr(SampleSize)]);
+    ListViewData(['SampleRate', FloatToStr(SampleRate)]);
   end;
 end;
-*)
 
-(*
-  TMp4SampleDescriptionChunk = class(TMp4ContainerChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-  public
-    constructor Create; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4SampleDescription(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4TimeToSample(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
-  with TMp4SampleDescriptionChunk(Chunk) do
+  with TMp4TimeToSampleChunk(Chunk) do
   begin
+    ListViewColumns(['SampleCount', 'SampleDuration']);
+
+    for Index := 0 to SampleTable.Count - 1 do
+      ListViewData([
+        IntToStr(SampleTable[Index].SampleCount),
+        IntToStr(SampleTable[Index].SampleDuration)
+      ]);
   end;
 end;
-*)
 
-(*
-  TMp4SampleTableEntry = class
-  private
-    FSampleCount: Cardinal;
-    FSampleDuration: Cardinal;
-  public
-    procedure LoadFromStream(Stream: TStream);
-    procedure SaveToStream(Stream: TStream);
-  end;
-
-  TMp4SampleTableEntryList = class(TObjectList)
-  protected
-    function GetItem(Index: Integer): TMp4SampleTableEntry;
-    procedure SetItem(Index: Integer; AChunk: TMp4SampleTableEntry);
-  public
-    function Add(AChunk: TMp4SampleTableEntry): Integer;
-    function Extract(Item: TMp4SampleTableEntry): TMp4SampleTableEntry;
-    function Remove(AChunk: TMp4SampleTableEntry): Integer;
-    function IndexOf(AChunk: TMp4SampleTableEntry): Integer;
-    procedure Insert(Index: Integer; AChunk: TMp4SampleTableEntry);
-    function First: TMp4SampleTableEntry;
-    function Last: TMp4SampleTableEntry;
-
-    property Items[Index: Integer]: TMp4SampleTableEntry read GetItem write SetItem; default;
-  end;
-
-  TMp4TimeToSampleChunk = class(TMp4DefinedChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-    FSampleTable: TMp4SampleTableEntryList;
-  public
-    constructor Create; override;
-    destructor Destroy; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4SampleToChunk(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
-  with TMp4DataChunk(Chunk) do
+  with TMp4SampleToChunkChunk(Chunk) do
   begin
+    ListViewColumns(['FirstChunk', 'SamplesPerChunk', 'SampleDescription']);
+
+    for Index := 0 to SampleToChunkTable.Count - 1 do
+      ListViewData([
+        IntToStr(SampleToChunkTable[Index].FirstChunk),
+        IntToStr(SampleToChunkTable[Index].SamplesPerChunk),
+        IntToStr(SampleToChunkTable[Index].SampleDescription)
+      ]);
   end;
 end;
-*)
 
-(*
-  TMp4SampleToChunkEntry = class
-  private
-    FFirstChunk: Cardinal;
-    FSamplesPerChunk: Cardinal;
-    FSampleDescription: Cardinal;
-  public
-    procedure LoadFromStream(Stream: TStream);
-    procedure SaveToStream(Stream: TStream);
-  end;
-
-  TMp4SampleToChunkEntryList = class(TObjectList)
-  protected
-    function GetItem(Index: Integer): TMp4SampleToChunkEntry;
-    procedure SetItem(Index: Integer; AChunk: TMp4SampleToChunkEntry);
-  public
-    function Add(AChunk: TMp4SampleToChunkEntry): Integer;
-    function Extract(Item: TMp4SampleToChunkEntry): TMp4SampleToChunkEntry;
-    function Remove(AChunk: TMp4SampleToChunkEntry): Integer;
-    function IndexOf(AChunk: TMp4SampleToChunkEntry): Integer;
-    procedure Insert(Index: Integer; AChunk: TMp4SampleToChunkEntry);
-    function First: TMp4SampleToChunkEntry;
-    function Last: TMp4SampleToChunkEntry;
-
-    property Items[Index: Integer]: TMp4SampleToChunkEntry read GetItem write SetItem; default;
-  end;
-
-  TMp4SampleToChunkChunk = class(TMp4DefinedChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-    FSampleToChunkTable: TMp4SampleToChunkEntryList;
-  public
-    constructor Create; override;
-    destructor Destroy; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4SyncSample(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
-  with TMp4DataChunk(Chunk) do
+  with TMp4SyncSampleChunk(Chunk) do
   begin
+    ListViewColumns(['Index', 'SampleSize']);
+
+    for Index := 0 to Count - 1 do
+      ListViewData([IntToStr(Index), IntToStr(SyncSample[Index])]);
   end;
 end;
-*)
 
-(*
-  TMp4SampleSizeChunk = class(TMp4DefinedChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FSampleSize: Cardinal;
-    FNumberOfEntries: Cardinal;
-    FSampleSizes: array of Cardinal;
-  public
-    constructor Create; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4SampleSize(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
-  with TMp4DataChunk(Chunk) do
+  with TMp4SampleSizeChunk(Chunk) do
   begin
+    ListViewColumns(['Index', 'SampleSize']);
+
+    for Index := 0 to Count - 1 do
+      ListViewData([IntToStr(Index), IntToStr(SampleSize[Index])]);
   end;
 end;
-*)
 
-(*
-  TMp4ChunkOffsetChunk = class(TMp4DefinedChunk)
-  private
-    FVersion: Byte;
-    FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
-    FChunkOffsetTable: array of Int64;
-  public
-    constructor Create; override;
-
-    class function GetClassChunkName: TChunkName; override;
-
-    procedure LoadFromStream(Stream: TStream); override;
-    procedure SaveToStream(Stream: TStream); override;
-  end;
-
-procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
+procedure TFormChunkedFileExplorer.DisplayMp4ChunkOffset(Chunk: TDefinedChunk);
+var
+  Index: Integer;
 begin
-  with TMp4DataChunk(Chunk) do
+  with TMp4ChunkOffsetChunk(Chunk) do
   begin
+    ListViewColumns(['Index', 'ChunkOffset']);
+
+    for Index := 0 to Count - 1 do
+      ListViewData([IntToStr(Index), IntToStr(ChunkOffset[Index])]);
   end;
 end;
-*)
 
 procedure TFormChunkedFileExplorer.DisplayMp4SampleGroupDescription(Chunk: TDefinedChunk);
 begin
@@ -1351,7 +1228,6 @@ begin
       ListViewData([IntToStr(TableData[Index].SampleCount), IntToStr(TableData[Index].GroupDescriptionIndex)]);
   end;
 end;
-
 
 procedure TFormChunkedFileExplorer.DisplayMp4Data(Chunk: TDefinedChunk);
 begin

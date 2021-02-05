@@ -37,6 +37,8 @@ type
     FMinorVersion: Integer;
     FCompatibleBrands: array of TChunkName;
     function GetCompatibleBrandsAsString: String;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
@@ -88,11 +90,12 @@ type
     FCurrentTime: Cardinal;
     FNextTrackId: Cardinal;
     function GetCreationTime: TDateTime;
-    function GetDuration: Single;
+    function GetDurationAsFloat: Single;
     function GetModificationTime: TDateTime;
-    function GetPreferredRate: Single;
-    function GetPreferredVolume: Single;
-    function GetTimeScale: Single;
+    function GetPreferredRateAsFloat: Single;
+    function GetPreferredVolumeAsFloat: Single;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -103,10 +106,32 @@ type
 
     property CreationTime: TDateTime read GetCreationTime;
     property ModificationTime: TDateTime read GetModificationTime;
-    property TimeScale: Single read GetTimeScale;
-    property Duration: Single read GetDuration;
-    property PreferredRate: Single read GetPreferredRate;
-    property PreferredVolume: Single read GetPreferredVolume;
+    property TimeScale: Cardinal read FTimeScale;
+    property Duration: Single read GetDurationAsFloat;
+    property PreferredRate: Single read GetPreferredRateAsFloat;
+    property PreferredVolume: Single read GetPreferredVolumeAsFloat;
+  end;
+
+  TMp4InitialObjectDescriptorChunk = class(TMp4DefinedChunk)
+  private
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FInitialObjectDescriptorTag: Byte;
+    FExtendedDescriptorTypeTag: array [0..2] of Byte;
+    FDescriptorTypeLength: Byte;
+    FObjectDescriptorID: Word;
+    FObjectDescriptorProfileLevel: Byte;
+    FSceneProfileLevel: Byte;
+    FAudioProfileLevel: Byte;
+    FVideoProfileLevel: Byte;
+    FGraphicsProfileLevel: Byte;
+  protected
+    function GetChunkSize: Cardinal; override;
+  public
+    class function GetClassChunkName: TChunkName; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
   end;
 
   TMp4TrackHeaderChunk = class(TMp4DefinedChunk)
@@ -128,14 +153,32 @@ type
     FTrackHeight: Cardinal;
     function GetCreationTime: TDateTime;
     function GetModificationTime: TDateTime;
+    function GetVolumeAsFloat: Single;
+    function GetIsEnabled: Boolean;
+    function GetIsInMovie: Boolean;
+    function GetIsInPoster: Boolean;
+    function GetIsInPreview: Boolean;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
 
+    property IsEnabled: Boolean read GetIsEnabled;
+    property IsInMovie: Boolean read GetIsInMovie;
+    property IsInPreview: Boolean read GetIsInPreview;
+    property IsInPoster: Boolean read GetIsInPoster;
     property CreationTime: TDateTime read GetCreationTime;
     property ModificationTime: TDateTime read GetModificationTime;
+    property TrackWidth: Cardinal read FTrackWidth;
+    property TrackHeight: Cardinal read FTrackHeight;
+    property TrackID: Cardinal read FTrackID;
+    property Duration: Cardinal read FDuration;
+    property Layer: Word read FLayer;
+    property AlternateGroup: Word read FAlternateGroup;
+    property Volume: Single read GetVolumeAsFloat;
   end;
 
   TMp4EditListEntry = class
@@ -143,9 +186,14 @@ type
     FTrackDuration: Cardinal;
     FMediaTime: Cardinal;
     FMediaRate: Cardinal;
+    function GetMediaRateAsFloat: Single;
   public
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToStream(Stream: TStream);
+
+    property TrackDuration: Cardinal read FTrackDuration;
+    property MediaTime: Cardinal read FMediaTime;
+    property MediaRate: Single read GetMediaRateAsFloat;
   end;
 
   TMp4EditListEntryList = class(TObjectList)
@@ -170,6 +218,8 @@ type
     FFlags: array [0..2] of Byte;
     FNumberOfEntries: Cardinal;
     FList: TMp4EditListEntryList;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -178,6 +228,8 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property EditList: TMp4EditListEntryList read FList;
   end;
 
   TMp4EditChunk = class(TMp4ContainerChunk)
@@ -201,6 +253,8 @@ type
     function GetDuration: Single;
     function GetModificationTime: TDateTime;
     function GetTimeScale: Single;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -223,6 +277,8 @@ type
     FComponentFlags: array [0..3] of Byte;
     FComponentFlagMask: array [0..3] of Byte;
     FComponentName: AnsiString;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -240,6 +296,9 @@ type
     FFlags: array [0..2] of Byte;
     FGraphicsMode: Word;
     FOpColor: array [0..2] of Word;
+    function GetOpColor(Index: Byte): Word;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -247,7 +306,7 @@ type
     procedure SaveToStream(Stream: TStream); override;
 
     property GraphicsMode: Word read FGraphicsMode;
-//    property FOpColor: array [0..2] of Word read FOpColor;
+    property OpColor[Index: Byte]: Word read GetOpColor;
   end;
 
   TMp4SoundMediaInformationChunk = class(TMp4DefinedChunk)
@@ -256,6 +315,8 @@ type
     FFlags: array [0..2] of Byte;
     FBalance: Word;
     FReserved: Word;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -273,6 +334,9 @@ type
     FOpColor: array [0..2] of Word;
     FBalance: Word;
     FReserved: Word;
+    function GetOpColor(Index: Byte): Word;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -280,15 +344,16 @@ type
     procedure SaveToStream(Stream: TStream); override;
 
     property GraphicsMode: Word read FGraphicsMode;
-//    property FOpColor: array [0..2] of Word read FOpColor;
+    property OpColor[Index: Byte]: Word read GetOpColor;
     property Balance: Word read FBalance;
   end;
 
-  TMp4DataReferenceChunk = class(TMp4ContainerChunk)
+  TMp4DataReferenceUrlChunk = class(TMp4DefinedChunk)
   private
     FVersion: Byte;
     FFlags: array [0..2] of Byte;
-    FNumberOfEntries: Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -296,9 +361,62 @@ type
     procedure SaveToStream(Stream: TStream); override;
   end;
 
+  TMp4DataReferenceChunk = class(TMp4ContainerChunk)
+  private
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FNumberOfEntries: Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
+  public
+    constructor Create; override;
+
+    class function GetClassChunkName: TChunkName; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
+  end;
+
+  TMp4StreamTypeID = (
+    stObjectDescriptor = 1,
+    stClockReference = 2,
+    stSceneDescriptor = 3,
+    stVisual = 4,
+    stAudio = 5,
+    stMpeg7 = 6,
+    stIPMP = 7,
+    stOCI = 8,
+    stMpegJava = 9
+  );
+
   TMp4ElementaryStreamDescriptorChunk = class(TMp4DefinedChunk)
   private
-    FBitStream: TMemoryStream;
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FElementaryStreamDescriptorTag: Byte;
+    FExtendedDescriptorTypeTag: array [0..2] of Byte;
+    FElementaryDescriptorID: Word;
+    FDescriptorTypeLength: Byte;
+    FStreamPriority: Byte;
+    FDecoderConfigDescriptor: Byte;
+    FExtendedDecoderConfigDescriptor: array [0..2] of Byte;
+    FDecoderConfigDescriptorTypeLength: Byte;
+    FObjectTypeId: Byte;
+    FStreamType: TMp4StreamTypeID;
+    FUpstreamFlag: Boolean;
+    FBufferSize: Cardinal;
+    FMaximumBitRate: Cardinal;
+    FAverageBitRate: Cardinal;
+    FDecoderSpecificTypeValue: Byte;
+    FExtendedDecoderSpecificTypeValue: array [0..2] of Byte;
+    FDecoderSpecificTypeLength: Byte;
+    FDecoderSpecificData: TMemoryStream;
+    FConfigDescriptorType: Byte;
+    FExtendedConfigDescriptorType: array [0..2] of Byte;
+    FConfigDescriptorLength: Byte;
+    FConfigValue: Byte;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -307,6 +425,14 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property StreamPriority: Byte read FStreamPriority;
+    property StreamType: TMp4StreamTypeID read FStreamType;
+    property UpstreamFlag: Boolean read FUpstreamFlag;
+    property BufferSize: Cardinal read FBufferSize;
+    property MaximumBitRate: Cardinal read FMaximumBitRate;
+    property AverageBitRate: Cardinal read FAverageBitRate;
+    property DecoderSpecificData: TMemoryStream read FDecoderSpecificData;
   end;
 
   TMp4DataInformationChunk = class(TMp4ContainerChunk)
@@ -318,14 +444,19 @@ type
 
   TMp4Mp4aChunk = class(TMp4ContainerChunk)
   private
-    FUnknownA: array [0..11] of Byte;
+    FReserved: array [0..5] of Byte;
     FDataReferenceIndex: Cardinal;
-    FUnknownB: array [0..7] of Byte;
+    FEncodingVersionLevel: Word;
+    FEncodingRevisionLevel: Word;
+    FEncodingVendor: TChunkName;
     FChannelCount: Cardinal;
     FSampleSize: Cardinal;
-    FUnknownC: array [0..1] of Byte;
+    FAudioCompressionId: Word;
+    FAudioPacketSize: Word;
     FSampleRate: Cardinal;
-    FUnknownD: array [0..1] of Byte;
+    function GetSampleRate: Single;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -333,6 +464,13 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property DataReferenceIndex: Cardinal read FDataReferenceIndex;
+    property ChannelCount: Cardinal read FChannelCount;
+    property SampleSize: Cardinal read FSampleSize;
+    property SampleRate: Single read GetSampleRate;
+    property AudioCompressionId: Word read FAudioCompressionId;
+    property AudioPacketSize: Word read FAudioPacketSize;
   end;
 
   TMp4SampleDescriptionChunk = class(TMp4ContainerChunk)
@@ -340,6 +478,8 @@ type
     FVersion: Byte;
     FFlags: array [0..2] of Byte;
     FNumberOfEntries: Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -356,6 +496,9 @@ type
   public
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToStream(Stream: TStream);
+
+    property SampleCount: Cardinal read FSampleCount;
+    property SampleDuration: Cardinal read FSampleDuration;
   end;
 
   TMp4SampleTableEntryList = class(TObjectList)
@@ -380,6 +523,8 @@ type
     FFlags: array [0..2] of Byte;
     FNumberOfEntries: Cardinal;
     FSampleTable: TMp4SampleTableEntryList;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -388,6 +533,30 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property SampleTable: TMp4SampleTableEntryList read FSampleTable;
+  end;
+
+  TMp4SyncSampleChunk = class(TMp4DefinedChunk)
+  private
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FNumberOfEntries: Cardinal;
+    FSyncSampleTable: array of Cardinal;
+    function GetCount: Cardinal;
+    function GetSyncSample(Index: Integer): Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
+  public
+    constructor Create; override;
+
+    class function GetClassChunkName: TChunkName; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
+
+    property SyncSample[Index: Integer]: Cardinal read GetSyncSample;
+    property Count: Cardinal read GetCount;
   end;
 
   TMp4SampleToChunkEntry = class
@@ -398,6 +567,10 @@ type
   public
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToStream(Stream: TStream);
+
+    property FirstChunk: Cardinal read FFirstChunk;
+    property SamplesPerChunk: Cardinal read FSamplesPerChunk;
+    property SampleDescription: Cardinal read FSampleDescription;
   end;
 
   TMp4SampleToChunkEntryList = class(TObjectList)
@@ -422,6 +595,8 @@ type
     FFlags: array [0..2] of Byte;
     FNumberOfEntries: Cardinal;
     FSampleToChunkTable: TMp4SampleToChunkEntryList;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -430,6 +605,8 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property SampleToChunkTable: TMp4SampleToChunkEntryList read FSampleToChunkTable;
   end;
 
   TMp4SampleSizeChunk = class(TMp4DefinedChunk)
@@ -439,6 +616,10 @@ type
     FSampleSize: Cardinal;
     FNumberOfEntries: Cardinal;
     FSampleSizes: array of Cardinal;
+    function GetCount: Cardinal;
+    function GetSampleSize(Index: Integer): Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -446,6 +627,9 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property SampleSize[Index: Integer]: Cardinal read GetSampleSize;
+    property Count: Cardinal read GetCount;
   end;
 
   TMp4ChunkOffsetChunk = class(TMp4DefinedChunk)
@@ -454,6 +638,10 @@ type
     FFlags: array [0..2] of Byte;
     FNumberOfEntries: Cardinal;
     FChunkOffsetTable: array of Int64;
+    function GetChunkOffset(Index: Integer): Int64;
+    function GetCount: Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -461,6 +649,9 @@ type
 
     procedure LoadFromStream(Stream: TStream); override;
     procedure SaveToStream(Stream: TStream); override;
+
+    property ChunkOffset[Index: Integer]: Int64 read GetChunkOffset;
+    property Count: Cardinal read GetCount;
   end;
 
   TMp4SampleGroupDescriptionChunk = class(TMp4DefinedChunk)
@@ -471,6 +662,8 @@ type
     FDefaultLength: Cardinal;
     FEntryCount: Cardinal;
     FPayload: array of SmallInt;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -518,6 +711,8 @@ type
     FGroupingType: TChunkName;
     FEntryCount: Cardinal;
     FTableData: TMp4SampleToGroupEntryList;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -531,11 +726,38 @@ type
     property TableData: TMp4SampleToGroupEntryList read FTableData;
   end;
 
+  TMp4CompactSampleToGroupChunk = class(TMp4DefinedChunk)
+  private
+    FVersion: Byte;
+    FFlags: array [0..2] of Byte;
+    FGroupingType: TChunkName;
+    FUnknown: Cardinal;
+    FPatternLengthSize: Cardinal;
+    FSampleCountSize: Cardinal;
+    FNumberOfFramesFirstPeriod: Word;
+    FNumberOfFrames: Cardinal;
+    FEntryCount: Cardinal;
+    FPayload: array of SmallInt;
+    function GetChunkSize: Cardinal; override;
+  public
+    constructor Create; override;
+
+    class function GetClassChunkName: TChunkName; override;
+
+    procedure LoadFromStream(Stream: TStream); override;
+    procedure SaveToStream(Stream: TStream); override;
+
+    property PatternLengthSize: Cardinal read FPatternLengthSize;
+    property SampleCountSize: Cardinal read FSampleCountSize;
+    property EntryCount: Cardinal read FEntryCount;
+  end;
+
   TMp4SampleTableChunk = class(TMp4ContainerChunk)
   public
     constructor Create; override;
 
     class function GetClassChunkName: TChunkName; override;
+    procedure SaveToStream(Stream: TStream); override;
   end;
 
   TMp4MediaInformationChunk = class(TMp4ContainerChunk)
@@ -564,6 +786,8 @@ type
     FType: Cardinal;
     FLocale: Cardinal;
     FData: AnsiString;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     class function GetClassChunkName: TChunkName; override;
 
@@ -601,6 +825,8 @@ type
   TMp4MetaChunk = class(TMp4ContainerChunk)
   private
     FUnknown: Cardinal;
+  protected
+    function GetChunkSize: Cardinal; override;
   public
     constructor Create; override;
 
@@ -643,6 +869,9 @@ implementation
 
 uses
   DateUtils, CfeUtils;
+
+resourcestring
+  RCStrIndexOutOfBounds = 'Index out of bounds (%d)';
 
 { TMp4DefinedChunk }
 
@@ -729,8 +958,7 @@ end;
 
 function TMp4MovieDataChunk.GetChunkSize: Cardinal;
 begin
-  FChunkSize := FStream.Size;
-  Result := inherited GetChunkSize;
+  Result := FStream.Size;
 end;
 
 class function TMp4MovieDataChunk.GetClassChunkName: TChunkName;
@@ -752,7 +980,6 @@ end;
 
 procedure TMp4MovieDataChunk.SaveToStream(Stream: TStream);
 begin
-  FChunkSize := FStream.Size;
   inherited;
   FStream.Position := 0;
   Stream.CopyFrom(FStream, FStream.Size);
@@ -764,6 +991,11 @@ end;
 
 
 { TMp4FileTypeChunk }
+
+function TMp4FileTypeChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + Length(FCompatibleBrands) * 4;
+end;
 
 class function TMp4FileTypeChunk.GetClassChunkName: TChunkName;
 begin
@@ -846,6 +1078,11 @@ begin
   FNextTrackId := $2000000;
 end;
 
+function TMp4MovieHeaderChunk.GetChunkSize: Cardinal;
+begin
+  Result := 100;
+end;
+
 class function TMp4MovieHeaderChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'mvhd';
@@ -856,7 +1093,7 @@ begin
   Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FCreationTime);
 end;
 
-function TMp4MovieHeaderChunk.GetDuration: Single;
+function TMp4MovieHeaderChunk.GetDurationAsFloat: Single;
 begin
   Result :=  FDuration / TimeScale;
 end;
@@ -866,19 +1103,14 @@ begin
   Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FModificationTime);
 end;
 
-function TMp4MovieHeaderChunk.GetPreferredRate: Single;
+function TMp4MovieHeaderChunk.GetPreferredRateAsFloat: Single;
 begin
   Result := FPreferredRate / $10000;
 end;
 
-function TMp4MovieHeaderChunk.GetPreferredVolume: Single;
+function TMp4MovieHeaderChunk.GetPreferredVolumeAsFloat: Single;
 begin
   Result := FPreferredVolume / $100;
-end;
-
-function TMp4MovieHeaderChunk.GetTimeScale: Single;
-begin
-  Result := FTimeScale;
 end;
 
 procedure TMp4MovieHeaderChunk.LoadFromStream(Stream: TStream);
@@ -942,7 +1174,61 @@ begin
 end;
 
 
+{ TMp4InitialObjectDescriptorChunk }
+
+function TMp4InitialObjectDescriptorChunk.GetChunkSize: Cardinal;
+begin
+  Result := 16;
+end;
+
+class function TMp4InitialObjectDescriptorChunk.GetClassChunkName: TChunkName;
+begin
+  Result := 'iods';
+end;
+
+procedure TMp4InitialObjectDescriptorChunk.LoadFromStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.Read(FVersion, 1);
+  Stream.Read(FFlags[0], 3);
+
+  Stream.Read(FInitialObjectDescriptorTag, 1);
+  Stream.Read(FExtendedDescriptorTypeTag[0], 3);
+  Stream.Read(FDescriptorTypeLength, 1);
+  FObjectDescriptorID := ReadSwappedWord(Stream);
+  Stream.Read(FObjectDescriptorProfileLevel, 1);
+  Stream.Read(FSceneProfileLevel, 1);
+  Stream.Read(FAudioProfileLevel, 1);
+  Stream.Read(FVideoProfileLevel, 1);
+  Stream.Read(FGraphicsProfileLevel, 1);
+end;
+
+procedure TMp4InitialObjectDescriptorChunk.SaveToStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.Write(FVersion, 1);
+  Stream.Write(FFlags[0], 3);
+
+  Stream.Write(FInitialObjectDescriptorTag, 1);
+  Stream.Write(FExtendedDescriptorTypeTag[0], 3);
+  Stream.Write(FDescriptorTypeLength, 1);
+  WriteSwappedWord(Stream, FObjectDescriptorID);
+  Stream.Write(FObjectDescriptorProfileLevel, 1);
+  Stream.Write(FSceneProfileLevel, 1);
+  Stream.Write(FAudioProfileLevel, 1);
+  Stream.Write(FVideoProfileLevel, 1);
+  Stream.Write(FGraphicsProfileLevel, 1);
+end;
+
+
 { TMp4TrackHeaderChunk }
+
+function TMp4TrackHeaderChunk.GetChunkSize: Cardinal;
+begin
+  Result := 84;
+end;
 
 class function TMp4TrackHeaderChunk.GetClassChunkName: TChunkName;
 begin
@@ -954,9 +1240,34 @@ begin
   Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FCreationTime);
 end;
 
+function TMp4TrackHeaderChunk.GetIsEnabled: Boolean;
+begin
+  Result := (FFlags[2] and $1) > 0;
+end;
+
+function TMp4TrackHeaderChunk.GetIsInMovie: Boolean;
+begin
+  Result := (FFlags[2] and $2) > 0;
+end;
+
+function TMp4TrackHeaderChunk.GetIsInPoster: Boolean;
+begin
+  Result := (FFlags[2] and $8) > 0;
+end;
+
+function TMp4TrackHeaderChunk.GetIsInPreview: Boolean;
+begin
+  Result := (FFlags[2] and $4) > 0;
+end;
+
 function TMp4TrackHeaderChunk.GetModificationTime: TDateTime;
 begin
   Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FModificationTime);
+end;
+
+function TMp4TrackHeaderChunk.GetVolumeAsFloat: Single;
+begin
+  Result := FVolume / $100;
 end;
 
 procedure TMp4TrackHeaderChunk.LoadFromStream(Stream: TStream);
@@ -1013,6 +1324,11 @@ end;
 
 
 { TMp4EditListEntry }
+
+function TMp4EditListEntry.GetMediaRateAsFloat: Single;
+begin
+  Result := FMediaRate / $10000;
+end;
 
 procedure TMp4EditListEntry.LoadFromStream(Stream: TStream);
 begin
@@ -1094,6 +1410,11 @@ begin
   inherited;
 end;
 
+function TMp4EditListChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + FList.Count * 3 * SizeOf(Cardinal);
+end;
+
 class function TMp4EditListChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'elst';
@@ -1157,6 +1478,11 @@ begin
   Result := 'mdhd';
 end;
 
+function TMp4MediaHeaderChunk.GetChunkSize: Cardinal;
+begin
+  Result := 24;
+end;
+
 function TMp4MediaHeaderChunk.GetCreationTime: TDateTime;
 begin
   Result := IncSecond(EncodeDateTime(1904, 1, 1, 0, 0, 0, 0), FCreationTime);
@@ -1214,6 +1540,11 @@ begin
   Result := 'hdlr';
 end;
 
+function TMp4HandlerReferenceChunk.GetChunkSize: Cardinal;
+begin
+  Result := 24 + Length(FComponentName);
+end;
+
 procedure TMp4HandlerReferenceChunk.LoadFromStream(Stream: TStream);
 begin
   inherited;
@@ -1248,9 +1579,22 @@ end;
 
 { TMp4VideoMediaInformationChunk }
 
+function TMp4VideoMediaInformationChunk.GetChunkSize: Cardinal;
+begin
+  Result := 9;
+end;
+
 class function TMp4VideoMediaInformationChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'vmhd'
+end;
+
+function TMp4VideoMediaInformationChunk.GetOpColor(Index: Byte): Word;
+begin
+  if not (Index in [0..2]) then
+    raise Exception.CreateFmt(RCStrIndexOutOfBounds, [Index]);
+
+  Result := FOpColor[Index];
 end;
 
 procedure TMp4VideoMediaInformationChunk.LoadFromStream(Stream: TStream);
@@ -1279,6 +1623,11 @@ end;
 class function TMp4SoundMediaInformationChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'smhd'
+end;
+
+function TMp4SoundMediaInformationChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8;
 end;
 
 procedure TMp4SoundMediaInformationChunk.LoadFromStream(Stream: TStream);
@@ -1323,9 +1672,22 @@ end;
 
 { TMp4BaseMediaInformationChunk }
 
+function TMp4BaseMediaInformationChunk.GetChunkSize: Cardinal;
+begin
+  Result := 13;
+end;
+
 class function TMp4BaseMediaInformationChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'gmin';
+end;
+
+function TMp4BaseMediaInformationChunk.GetOpColor(Index: Byte): Word;
+begin
+  if not (Index in [0..2]) then
+    raise Exception.CreateFmt(RCStrIndexOutOfBounds, [Index]);
+
+  Result := FOpColor[Index];
 end;
 
 procedure TMp4BaseMediaInformationChunk.LoadFromStream(Stream: TStream);
@@ -1355,11 +1717,58 @@ begin
 end;
 
 
+{ TMp4DataReferenceUrlChunk }
+
+function TMp4DataReferenceUrlChunk.GetChunkSize: Cardinal;
+begin
+  Result := 4;
+end;
+
+class function TMp4DataReferenceUrlChunk.GetClassChunkName: TChunkName;
+begin
+  Result := 'url ';
+end;
+
+procedure TMp4DataReferenceUrlChunk.LoadFromStream(Stream: TStream);
+begin
+  inherited;
+
+  // read version
+  Stream.Read(FVersion, 1);
+
+  // read flags
+  Stream.Read(FFlags, 3);
+end;
+
+procedure TMp4DataReferenceUrlChunk.SaveToStream(Stream: TStream);
+begin
+  inherited;
+
+  // write version
+  Stream.Write(FVersion, 1);
+
+  // write flags
+  Stream.Write(FFlags, 3);
+end;
+
+
 { TMp4DataReferenceChunk }
 
 class function TMp4DataReferenceChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'dref';
+end;
+
+constructor TMp4DataReferenceChunk.Create;
+begin
+  inherited;
+
+  RegisterChunkClasses([TMp4DataReferenceUrlChunk]);
+end;
+
+function TMp4DataReferenceChunk.GetChunkSize: Cardinal;
+begin
+  Result := inherited GetChunkSize + 8;
 end;
 
 procedure TMp4DataReferenceChunk.LoadFromStream(Stream: TStream);
@@ -1369,8 +1778,7 @@ var
   SubChunkSize: Cardinal;
 begin
   // read chunk size
-  Stream.Read(FChunkSize, 4);
-  Flip32(FChunkSize);
+  FChunkSize := ReadSwappedCardinal(Stream);
 
   // read chunk name
   Stream.Read(FChunkName, 4);
@@ -1403,14 +1811,13 @@ end;
 
 procedure TMp4DataReferenceChunk.SaveToStream(Stream: TStream);
 var
-  Value: Cardinal;
   i: Integer;
+  ChunkSize: Cardinal;
 begin
   // write chunk size
   FChunkSize := GetChunkSize;
-  Value := FChunkSize;
-  Flip32(Value);
-  Stream.Write(Value, 4);
+  ChunkSize := FChunkSize + 8;
+  WriteSwappedCardinal(Stream, ChunkSize);
 
   // write chunk name
   Stream.Write(FChunkName, 4);
@@ -1454,14 +1861,34 @@ constructor TMp4ElementaryStreamDescriptorChunk.Create;
 begin
   inherited;
 
-  FBitStream := TMemoryStream.Create;
+  FElementaryStreamDescriptorTag := 3;
+  FExtendedDescriptorTypeTag[0] := 128;
+  FExtendedDescriptorTypeTag[1] := 128;
+  FExtendedDescriptorTypeTag[2] := 128;
+  FStreamPriority := 16;
+  FDecoderConfigDescriptor := 4;
+  FExtendedDecoderConfigDescriptor[0] := 128;
+  FExtendedDecoderConfigDescriptor[1] := 128;
+  FExtendedDecoderConfigDescriptor[2] := 128;
+  FDecoderSpecificTypeValue := 5;
+  FExtendedDecoderSpecificTypeValue[0] := 128;
+  FExtendedDecoderSpecificTypeValue[1] := 128;
+  FExtendedDecoderSpecificTypeValue[2] := 128;
+  FConfigDescriptorType := 6;
+
+  FDecoderSpecificData := TMemoryStream.Create;
 end;
 
 destructor TMp4ElementaryStreamDescriptorChunk.Destroy;
 begin
-  FBitStream.Free;
+  FDecoderSpecificData.Free;
 
   inherited;
+end;
+
+function TMp4ElementaryStreamDescriptorChunk.GetChunkSize: Cardinal;
+begin
+  Result := 35 + FDecoderSpecificData.Size + 6;
 end;
 
 class function TMp4ElementaryStreamDescriptorChunk.GetClassChunkName: TChunkName;
@@ -1470,17 +1897,117 @@ begin
 end;
 
 procedure TMp4ElementaryStreamDescriptorChunk.LoadFromStream(Stream: TStream);
+var
+  Value: Byte;
 begin
   inherited;
 
-  FBitStream.CopyFrom(Stream, ChunkSize);
+  // read version
+  Stream.Read(FVersion, 1);
+
+  // read flags
+  Stream.Read(FFlags, 3);
+
+  // read elementary stream descriptor tag
+  Stream.Read(FElementaryStreamDescriptorTag, 1);
+  Stream.Read(FExtendedDescriptorTypeTag[0], 3);
+
+  Stream.Read(FDescriptorTypeLength, 1);
+  FElementaryDescriptorID := ReadSwappedWord(Stream);
+
+  Stream.Read(FStreamPriority, 1);
+  Stream.Read(FDecoderConfigDescriptor, 1);
+  Stream.Read(FExtendedDecoderConfigDescriptor[0], 3);
+  Stream.Read(FDecoderConfigDescriptorTypeLength, 1);
+
+  Stream.Read(FObjectTypeId, 1);
+  Stream.Read(Value, 1);
+  FStreamType := TMp4StreamTypeID(Value shr 2);
+  FUpstreamFlag := (Value and 2) <> 0;
+
+  // read buffer size
+  Stream.Read(Value, 1);
+  FBufferSize := Value shl 16;
+  Stream.Read(Value, 1);
+  FBufferSize := FBufferSize or (Value shl 8);
+  Stream.Read(Value, 1);
+  FBufferSize := FBufferSize or Value;
+
+  FMaximumBitRate := ReadSwappedCardinal(Stream);
+  FAverageBitRate := ReadSwappedCardinal(Stream);
+
+  Stream.Read(FDecoderSpecificTypeValue, 1);
+  Stream.Read(FExtendedDecoderSpecificTypeValue[0], 1);
+  Stream.Read(FExtendedDecoderSpecificTypeValue[1], 1);
+  Stream.Read(FExtendedDecoderSpecificTypeValue[2], 1);
+
+  Stream.Read(FDecoderSpecificTypeLength, 1);
+
+  FDecoderSpecificData.CopyFrom(Stream, FDecoderSpecificTypeLength);
+
+  Stream.Read(FConfigDescriptorType, 1);
+  Stream.Read(FExtendedConfigDescriptorType[0], 1);
+  Stream.Read(FExtendedConfigDescriptorType[1], 1);
+  Stream.Read(FExtendedConfigDescriptorType[2], 1);
+  Stream.Read(FConfigDescriptorLength, 1);
+  Stream.Read(FConfigValue, 1);
 end;
 
 procedure TMp4ElementaryStreamDescriptorChunk.SaveToStream(Stream: TStream);
+var
+  Value: Byte;
 begin
   inherited;
 
-  Stream.CopyFrom(FBitStream, ChunkSize);
+  // write version
+  Stream.Write(FVersion, 1);
+
+  // write flags
+  Stream.Write(FFlags, 3);
+
+  // write elementary stream descriptor tag
+  Stream.Write(FElementaryStreamDescriptorTag, 1);
+  Stream.Write(FExtendedDescriptorTypeTag[0], 3);
+
+  Stream.Write(FDescriptorTypeLength, 1);
+  WriteSwappedWord(Stream, FElementaryDescriptorID);
+
+  Stream.Write(FStreamPriority, 1);
+  Stream.Write(FDecoderConfigDescriptor, 1);
+  Stream.Write(FExtendedDecoderConfigDescriptor[0], 3);
+  Stream.Write(FDecoderConfigDescriptorTypeLength, 1);
+
+  Stream.Write(FObjectTypeId, 1);
+  Value := (Byte(FStreamType) shl 2) or (Byte(FUpstreamFlag) shl 1) or 1;
+  Stream.Write(Value, 1);
+
+  // write buffer size
+  Value := (FBufferSize shr 16) and $ff;
+  Stream.Write(Value, 1);
+  Value := (FBufferSize shr 8) and $ff;
+  Stream.Write(Value, 1);
+  Value := FBufferSize and $ff;
+  Stream.Write(Value, 1);
+
+  WriteSwappedCardinal(Stream, FMaximumBitRate);
+  WriteSwappedCardinal(Stream, FAverageBitRate);
+
+  Stream.Write(FDecoderSpecificTypeValue, 1);
+  Stream.Write(FExtendedDecoderSpecificTypeValue[0], 1);
+  Stream.Write(FExtendedDecoderSpecificTypeValue[1], 1);
+  Stream.Write(FExtendedDecoderSpecificTypeValue[2], 1);
+
+  Stream.Write(FDecoderSpecificTypeLength, 1);
+
+  FDecoderSpecificData.Position := 0;
+  Stream.CopyFrom(FDecoderSpecificData, FDecoderSpecificData.Size);
+
+  Stream.Write(FConfigDescriptorType, 1);
+  Stream.Write(FExtendedConfigDescriptorType[0], 1);
+  Stream.Write(FExtendedConfigDescriptorType[1], 1);
+  Stream.Write(FExtendedConfigDescriptorType[2], 1);
+  Stream.Write(FConfigDescriptorLength, 1);
+  Stream.Write(FConfigValue, 1);
 end;
 
 
@@ -1490,6 +2017,14 @@ constructor TMp4Mp4aChunk.Create;
 begin
   inherited;
 
+  FillChar(FReserved[0], 6, 0);
+
+  RegisterChunkClasses([TMp4ElementaryStreamDescriptorChunk]);
+end;
+
+function TMp4Mp4aChunk.GetChunkSize: Cardinal;
+begin
+  Result := inherited GetChunkSize + 28;
 end;
 
 class function TMp4Mp4aChunk.GetClassChunkName: TChunkName;
@@ -1497,28 +2032,102 @@ begin
   Result := 'mp4a';
 end;
 
-procedure TMp4Mp4aChunk.LoadFromStream(Stream: TStream);
+function TMp4Mp4aChunk.GetSampleRate: Single;
 begin
-  Stream.Read(FUnknownA, 12);
-  FDataReferenceIndex := ReadSwappedCardinal(Stream);
-  Stream.Read(FUnknownB, 8);
+  Result := FSampleRate / $10000;
+end;
+
+procedure TMp4Mp4aChunk.LoadFromStream(Stream: TStream);
+var
+  ChunkEnd: Cardinal;
+  SubChunkName: TChunkName;
+begin
+  // read chunk size and determine chunk end position
+  FChunkSize := ReadSwappedCardinal(Stream) - 8;
+  ChunkEnd := Stream.Position + FChunkSize + 4;
+
+  // read chunk data
+  Stream.Read(FChunkName, 4);
+
+  // read reserved data
+  Stream.Read(FReserved, 6);
+
+  // read data reference index
+  FDataReferenceIndex := ReadSwappedWord(Stream);
+
+  // read encoding information
+  FEncodingVersionLevel := ReadSwappedWord(Stream);
+  FEncodingRevisionLevel := ReadSwappedWord(Stream);
+  Stream.Read(FEncodingVendor, SizeOf(TChunkName));
+
+  // read audio information
   FChannelCount := ReadSwappedWord(Stream);
   FSampleSize := ReadSwappedWord(Stream);
-  Stream.Read(FUnknownC, 2);
+  Stream.Read(FAudioCompressionId, SizeOf(Word));
+  Stream.Read(FAudioPacketSize, SizeOf(Word));
   FSampleRate := ReadSwappedCardinal(Stream);
-  Stream.Read(FUnknownD, 2);
+
+  // read sub chunks
+  with Stream do
+  begin
+    Assert(ChunkEnd <= Stream.Size);
+    while Position < ChunkEnd do
+    begin
+      Position := Position + 4;
+      Read(SubChunkName, 4);
+      Position := Position - 8;
+      ConvertStreamToChunk(GetChunkClass(SubChunkName), Stream);
+    end;
+    if Position <> ChunkEnd then
+      Position := ChunkEnd;
+
+    // eventually skip padded zeroes
+    if cfPadSize in ChunkFlags then
+      Position := Position + CalculateZeroPad;
+  end;
+
+  // eventually skip padded zeroes
+  if cfPadSize in ChunkFlags then
+    Stream.Position := Stream.Position + CalculateZeroPad;
 end;
 
 procedure TMp4Mp4aChunk.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
+  ChunkSize: Cardinal;
 begin
-  Stream.Write(FUnknownA, 12);
-  WriteSwappedCardinal(Stream, FDataReferenceIndex);
-  Stream.Write(FUnknownB, 8);
+  // write chunk size
+  FChunkSize := GetChunkSize;
+  ChunkSize := FChunkSize + 8;
+  WriteSwappedCardinal(Stream, ChunkSize);
+
+  // write chunk name
+  Stream.Write(FChunkName, 4);
+
+  // write reserved data
+  Stream.Write(FReserved, 6);
+
+  // write data reference
+  WriteSwappedWord(Stream, FDataReferenceIndex);
+
+  // write encoding information
+  WriteSwappedWord(Stream, FEncodingVersionLevel);
+  WriteSwappedWord(Stream, FEncodingRevisionLevel);
+  Stream.Write(FEncodingVendor, 4);
+
+  // write encoding information
   WriteSwappedWord(Stream, FChannelCount);
   WriteSwappedWord(Stream, FSampleSize);
-  Stream.Write(FUnknownC, 2);
+  Stream.Write(FAudioCompressionId, SizeOf(Word));
+  Stream.Write(FAudioPacketSize, SizeOf(Word));
   WriteSwappedCardinal(Stream, FSampleRate);
-  Stream.Write(FUnknownD, 2);
+
+  for Index := 0 to FChunkList.Count - 1 do
+    FChunkList[Index].SaveToStream(Stream);
+
+  // insert pad byte if necessary
+  if cfPadSize in ChunkFlags then
+    Stream.Write(CZeroPad, CalculateZeroPad);
 end;
 
 
@@ -1529,6 +2138,11 @@ begin
   inherited;
 
   RegisterChunkClass(TMp4Mp4aChunk);
+end;
+
+function TMp4SampleDescriptionChunk.GetChunkSize: Cardinal;
+begin
+  Result := inherited GetChunkSize + 8;
 end;
 
 class function TMp4SampleDescriptionChunk.GetClassChunkName: TChunkName;
@@ -1543,12 +2157,12 @@ var
   SubChunkSize: Cardinal;
 begin
   // read chunk size
-  Stream.Read(FChunkSize, 4);
-  Flip32(FChunkSize);
+  FChunkSize := ReadSwappedCardinal(Stream);
 
   // read chunk name
   Stream.Read(FChunkName, 4);
 
+  // read version and flags
   Stream.Read(FVersion, 1);
   Stream.Read(FFlags, 3);
 
@@ -1573,14 +2187,20 @@ end;
 procedure TMp4SampleDescriptionChunk.SaveToStream(Stream: TStream);
 var
   Value: Cardinal;
+  ChunkSize: Cardinal;
   i: Integer;
 begin
   // write chunk size
   FChunkSize := GetChunkSize;
-  WriteSwappedCardinal(Stream, FChunkSize);
+  ChunkSize := FChunkSize + 8;
+  WriteSwappedCardinal(Stream, ChunkSize);
 
   // write chunk name
   Stream.Write(FChunkName, 4);
+
+  // write version and flags
+  Stream.Write(FVersion, 1);
+  Stream.Write(FFlags, 3);
 
   // write number of entries
   WriteSwappedCardinal(Stream, FNumberOfEntries);
@@ -1676,6 +2296,11 @@ begin
   inherited;
 end;
 
+function TMp4TimeToSampleChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + FSampleTable.Count * 8;
+end;
+
 class function TMp4TimeToSampleChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'stts';
@@ -1714,6 +2339,71 @@ begin
 
   for Index := 0 to FSampleTable.Count - 1 do
     FSampleTable[Index].SaveToStream(Stream);
+end;
+
+
+{ TMp4SyncSampleChunk }
+
+constructor TMp4SyncSampleChunk.Create;
+begin
+  inherited;
+
+  FNumberOfEntries := 0;
+end;
+
+function TMp4SyncSampleChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + Length(FSyncSampleTable) * 4;
+end;
+
+class function TMp4SyncSampleChunk.GetClassChunkName: TChunkName;
+begin
+  Result := 'stss';
+end;
+
+function TMp4SyncSampleChunk.GetCount: Cardinal;
+begin
+  Result := Length(FSyncSampleTable);
+end;
+
+function TMp4SyncSampleChunk.GetSyncSample(Index: Integer): Cardinal;
+begin
+  if (Index < 0) or (Index >= Count) then
+    raise Exception.CreateFmt(RCStrIndexOutOfBounds, [Index]);
+
+  Result := FSyncSampleTable[Index];
+end;
+
+procedure TMp4SyncSampleChunk.LoadFromStream(Stream: TStream);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Stream.Read(FVersion, 1);
+  Stream.Read(FFlags, 3);
+
+  FNumberOfEntries := ReadSwappedCardinal(Stream);
+
+  SetLength(FSyncSampleTable, FNumberOfEntries);
+  for Index := 0 to FNumberOfEntries - 1 do
+    FSyncSampleTable[Index] := ReadSwappedCardinal(Stream);
+end;
+
+procedure TMp4SyncSampleChunk.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Stream.Write(FVersion, 1);
+  Stream.Write(FFlags, 3);
+
+  FNumberOfEntries := Length(FSyncSampleTable);
+  WriteSwappedCardinal(Stream, FNumberOfEntries);
+
+  for Index := 0 to Length(FSyncSampleTable) - 1 do
+    WriteSwappedCardinal(Stream, FSyncSampleTable[Index]);
 end;
 
 
@@ -1801,6 +2491,11 @@ begin
   inherited;
 end;
 
+function TMp4SampleToChunkChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + FSampleToChunkTable.Count * 12;
+end;
+
 class function TMp4SampleToChunkChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'stsc';
@@ -1850,9 +2545,27 @@ begin
   inherited;
 end;
 
+function TMp4SampleSizeChunk.GetChunkSize: Cardinal;
+begin
+  Result := 12 + Length(FSampleSizes) * SizeOf(Cardinal);
+end;
+
 class function TMp4SampleSizeChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'stsz';
+end;
+
+function TMp4SampleSizeChunk.GetCount: Cardinal;
+begin
+  Result := Length(FSampleSizes);
+end;
+
+function TMp4SampleSizeChunk.GetSampleSize(Index: Integer): Cardinal;
+begin
+  if (Index < 0) or (Index >= Count) then
+    raise Exception.CreateFmt(RCStrIndexOutOfBounds, [Index]);
+
+  Result := FSampleSizes[Index];
 end;
 
 procedure TMp4SampleSizeChunk.LoadFromStream(Stream: TStream);
@@ -1902,6 +2615,24 @@ end;
 class function TMp4ChunkOffsetChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'stco';
+end;
+
+function TMp4ChunkOffsetChunk.GetChunkOffset(Index: Integer): Int64;
+begin
+  if (Index < 0) or (Index >= Count) then
+    raise Exception.Create('Index out of bounds');
+
+  Result := FChunkOffsetTable[Index];
+end;
+
+function TMp4ChunkOffsetChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8 + Length(FChunkOffsetTable) * 4;
+end;
+
+function TMp4ChunkOffsetChunk.GetCount: Cardinal;
+begin
+  Result := Length(FChunkOffsetTable);
 end;
 
 procedure TMp4ChunkOffsetChunk.LoadFromStream(Stream: TStream);
@@ -1954,16 +2685,25 @@ begin
   Result := 'sgpd';
 end;
 
+function TMp4SampleGroupDescriptionChunk.GetChunkSize: Cardinal;
+begin
+  Result := 16 + Length(FPayload) * SizeOf(Word);
+end;
+
 procedure TMp4SampleGroupDescriptionChunk.LoadFromStream(Stream: TStream);
 var
   Index: Integer;
 begin
   inherited;
 
+  // read version & flags
   Stream.Read(FVersion, 1);
   Stream.Read(FFlags, 3);
 
+  // read grouping table
   Stream.Read(FGroupingType, 4);
+
+  // read default length
   FDefaultLength := ReadSwappedCardinal(Stream);
 
   FEntryCount := ReadSwappedCardinal(Stream);
@@ -1979,10 +2719,15 @@ var
 begin
   inherited;
 
+  // write version & flags
   Stream.Write(FVersion, 1);
   Stream.Write(FFlags, 3);
 
+  // write grouping table
   Stream.Write(FGroupingType, 4);
+
+  // write default length
+  WriteSwappedCardinal(Stream, FDefaultLength);
 
   FEntryCount := Length(FPayload);
   WriteSwappedCardinal(Stream, FEntryCount);
@@ -2075,6 +2820,11 @@ begin
   inherited;
 end;
 
+function TMp4SampleToGroupChunk.GetChunkSize: Cardinal;
+begin
+  Result := 12 + FTableData.Count * 2 * SizeOf(Cardinal);
+end;
+
 class function TMp4SampleToGroupChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'sbgp';
@@ -2121,21 +2871,135 @@ begin
 end;
 
 
+{ TMp4CompactSampleToGroupChunk }
+
+constructor TMp4CompactSampleToGroupChunk.Create;
+begin
+  inherited;
+
+  FGroupingType := 'roll';
+end;
+
+function TMp4CompactSampleToGroupChunk.GetChunkSize: Cardinal;
+begin
+  Result := 12 + FPatternLengthSize + FSampleCountSize + ((FNumberOfFramesFirstPeriod + 1) div 2);
+end;
+
+class function TMp4CompactSampleToGroupChunk.GetClassChunkName: TChunkName;
+begin
+  Result := 'csgp';
+end;
+
+procedure TMp4CompactSampleToGroupChunk.LoadFromStream(Stream: TStream);
+var
+  Index: Integer;
+  Value: Byte;
+begin
+  inherited;
+
+  // read version and flags (just a wild guess)
+  Stream.Read(FVersion, 1);
+  Stream.Read(FFlags, 3);
+  FPatternLengthSize := (FFlags[2] shr 4) and 3;
+  FSampleCountSize := (FFlags[2] shr 2) and 3;
+
+  // read grouping type and a yet unknown value
+  Stream.Read(FGroupingType, 4);
+  Stream.Read(FUnknown, 4);
+
+  if FPatternLengthSize > 1 then
+    FNumberOfFramesFirstPeriod := ReadSwappedWord(Stream)
+  else
+    Stream.Read(FNumberOfFramesFirstPeriod, 1);
+
+  if FSampleCountSize > 2 then
+    FNumberOfFrames := ReadSwappedCardinal(Stream)
+  else
+  if FSampleCountSize = 2 then
+    FNumberOfFrames := ReadSwappedWord(Stream)
+  else
+    Stream.Read(FNumberOfFrames, 1);
+
+  FEntryCount := FNumberOfFramesFirstPeriod;
+  SetLength(FPayload, FEntryCount);
+  for Index := 0 to ((FNumberOfFramesFirstPeriod + 1) div 2) - 1 do
+  begin
+    Stream.Read(Value, 1);
+    FPayload[Index * 2 + 0] := Value shr 4;
+    FPayload[Index * 2 + 1] := Value and $F;
+  end;
+end;
+
+procedure TMp4CompactSampleToGroupChunk.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
+  Value: Byte;
+begin
+  inherited;
+
+  // write version and flags (just a wild guess)
+  Stream.Write(FVersion, 1);
+  FFlags[2] := ((FPatternLengthSize and 3) shl 4) or ((FSampleCountSize and 3) shl 2);
+  Stream.Write(FFlags, 3);
+
+  // write grouping type and a yet unknown value
+  Stream.Write(FGroupingType, 4);
+  Stream.Write(FUnknown, 4);
+
+  if FPatternLengthSize > 1 then
+    WriteSwappedWord(Stream, FNumberOfFramesFirstPeriod)
+  else
+    Stream.Write(FNumberOfFramesFirstPeriod, 1);
+
+  if FSampleCountSize > 2 then
+    WriteSwappedCardinal(Stream, FNumberOfFrames)
+  else
+  if FSampleCountSize = 2 then
+    WriteSwappedWord(Stream, FNumberOfFrames)
+  else
+    Stream.Write(FNumberOfFrames, 1);
+
+  // write payload
+  for Index := 0 to ((FNumberOfFramesFirstPeriod + 1) div 2) - 1 do
+  begin
+    Value :=
+      ((FPayload[Index * 2 + 0] and $F) shl 4) or
+       (FPayload[Index * 2 + 1] and $F);
+    Stream.Write(Value, 1);
+  end;
+end;
+
+
 { TMp4SampleTableChunk }
 
 constructor TMp4SampleTableChunk.Create;
 begin
   inherited;
 
-  RegisterChunkClasses([TMp4SampleDescriptionChunk, TMp4TimeToSampleChunk,
-    TMp4SampleToChunkChunk, TMp4SampleSizeChunk, TMp4ChunkOffsetChunk,
-    TMp4SampleGroupDescriptionChunk, TMp4SampleToGroupChunk]);
+  RegisterChunkClasses([TMp4SyncSampleChunk, TMp4SampleDescriptionChunk,
+    TMp4TimeToSampleChunk, TMp4SampleToChunkChunk, TMp4SampleSizeChunk,
+    TMp4ChunkOffsetChunk, TMp4SampleGroupDescriptionChunk,
+    TMp4SampleToGroupChunk, TMp4CompactSampleToGroupChunk]);
 end;
 
 class function TMp4SampleTableChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'stbl';
 end;
+
+procedure TMp4SampleTableChunk.SaveToStream(Stream: TStream);
+var
+  sz: Integer;
+  Index: Integer;
+begin
+  inherited;
+
+  sz := 0;
+  for Index := 0 to Count - 1 do
+    sz := sz + SubChunk[Index].ChunkSize;
+
+end;
+
 
 
 { TMp4MediaChunk }
@@ -2186,6 +3050,11 @@ end;
 
 { TMp4DataChunk }
 
+function TMp4DataChunk.GetChunkSize: Cardinal;
+begin
+  Result := 8;
+end;
+
 class function TMp4DataChunk.GetClassChunkName: TChunkName;
 begin
   Result := 'data';
@@ -2196,12 +3065,10 @@ begin
   inherited;
 
   // read type
-  Stream.Read(FType, 4);
-  Flip32(FType);
+  FType := ReadSwappedCardinal(Stream);
 
   // read locale
-  Stream.Read(FLocale, 4);
-  Flip32(FLocale);
+  FLocale := ReadSwappedCardinal(Stream);
 
   SetLength(FData, FChunkSize - 8);
   Stream.Read(FData[1], FChunkSize - 8);
@@ -2212,7 +3079,6 @@ end;
 
 procedure TMp4DataChunk.SaveToStream(Stream: TStream);
 begin
-  FChunkSize := 8;
   inherited;
 
   // read type
@@ -2286,14 +3152,18 @@ begin
   Result := 'meta';
 end;
 
+function TMp4MetaChunk.GetChunkSize: Cardinal;
+begin
+  Result := inherited GetChunkSize + 4;
+end;
+
 procedure TMp4MetaChunk.LoadFromStream(Stream: TStream);
 var
   ChunkEnd: Cardinal;
   SubChunkName: TChunkName;
 begin
   // read chunk size
-  Stream.Read(FChunkSize, 4);
-  Flip32(FChunkSize);
+  FChunkSize := ReadSwappedCardinal(Stream);
 
   // read chunk name
   Stream.Read(FChunkName, 4);
@@ -2355,7 +3225,8 @@ constructor TMp4MoovChunk.Create;
 begin
   inherited;
 
-  RegisterChunkClasses([TMp4MovieHeaderChunk, TMp4TrackChunk, TMp4UserDataChunk]);
+  RegisterChunkClasses([TMp4MovieHeaderChunk,
+    TMp4InitialObjectDescriptorChunk, TMp4TrackChunk, TMp4UserDataChunk]);
 end;
 
 class function TMp4MoovChunk.GetClassChunkName: TChunkName;
@@ -2383,7 +3254,7 @@ begin
 
   if Result then
   begin
-    Stream.Read(ChunkSize, 4);
+    ChunkSize := ReadSwappedCardinal(Stream);
     Stream.Read(ChunkName, 4);
     Stream.Seek(-8, soFromCurrent);
     Result := ChunkName = GetClassChunkName;
@@ -2427,17 +3298,19 @@ begin
 
   while Stream.Position + 8 <= Stream.Size do
   begin
-    Stream.Read(ChunkSize, 4);
+    ChunkSize := ReadSwappedCardinal(Stream);
     Stream.Read(ChunkName, 4);
-    Flip32(ChunkSize);
     Stream.Position := Stream.Position - 8;
     ReadUnknownChunk(Stream, ChunkName, ChunkSize);
   end;
 end;
 
 procedure TFileMp4.SaveToStream(Stream: TStream);
+var
+  Index: Integer;
 begin
-  inherited;
+  for Index := 0 to Count - 1 do
+    SubChunk[Index].SaveToStream(Stream);
 end;
 
 

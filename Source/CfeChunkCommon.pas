@@ -341,7 +341,13 @@ procedure TCustomChunk.SaveToStream(Stream: TStream);
 var
   TempSize: Cardinal;
 begin
+  // calculate chunk size before save
+  FChunkSize := GetChunkSize;
   TempSize := FChunkSize;
+
+  // eventually include header
+  if cfIncludeChunkInSize in ChunkFlags then
+    TempSize := TempSize + 8;
 
   // eventually flip bytes
   if cfReversedByteOrder in ChunkFlags then
@@ -350,7 +356,7 @@ begin
   with Stream do
     if cfSizeFirst in ChunkFlags then
     begin
-      // order known from PNG
+      // order known from PNG, MPEG
       Write(TempSize, 4);
       Write(FChunkName[0], 4);
     end
